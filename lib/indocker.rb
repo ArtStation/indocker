@@ -103,8 +103,16 @@ module Indocker
       @deploy_dir = val
     end
 
-     def set_root_dir(val)
+    def set_root_dir(val)
       @root_dir = val
+    end
+
+    def set_redeploy_crontab_path(val)
+      @redeploy_crontab_path = val
+    end
+
+    def redeploy_crontab_path
+      @redeploy_crontab_path
     end
 
     def deploy_dir

@@ -423,7 +423,7 @@ class Indocker::ConfigurationDeployer
     @logger.info("{timestamp}")
 
     deploy_user       = "#{server.user}@#{server.host}"
-    crontab_filepath  = "~/#{server.user}/crontab"
+    crontab_filepath  = Indocker.redeploy_crontab_path
 
     crontab = Indocker::CrontabRedeployRulesBuilder
       .new(
