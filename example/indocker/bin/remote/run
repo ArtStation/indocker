@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require_relative '../utils/configurations'
+
+configurations = list_configurations(File.expand_path(File.join(__dir__, '../../configurations')))
+
+ARGV << '-h' if ARGV.empty?
+
+options = {
+  force_restart: false,
+}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: indocker/bin/remote/run [options] (only on remove server)"
+
+  opts.on("-C", "--configuration REQUIRED", String, "Configuration name") do |val|
+    options[:configuration] = val
+  end
+
+  opts.on("-d", "--debug", "Debug mode") do |val|
+    options[:debug] = true
+  end
+
+  opts.on("-c", "--container REQUIRED", String, "Container name") do |val|
+    options[:container] = val.to_sym
+  end
+
+  opts.on("-f", "--force-restart", "Force to restart each container") do |val|
+    options[:force_restart] = true
+  end
+
+  opts.on_tail("-h", "--help", "Show help") do
+    puts opts
+    exit
+  end
+end.parse!
+
+if !options.has_key?(:configuration)
+  puts "You should specify configuration using -C or --configuration option.\nAvailable configurations: #{configurations.sort.join(', ')}"
+  exit 1
+end
+
+if !configurations.include?(options[:configuration])
+  puts "Invalid configuration provided: #{options[:configuration]}.\nAvailable configurations: #{configurations.inspect}"
+  exit 1
+end
+
+begin
+  require 'indocker'
+rescue LoadError
+  puts "InDocker has been moved into a separate gem. Please install using `gem install indocker`"
+  exit 1
+end
+
+if options[:debug]
+  Indocker.set_log_level(Logger::DEBUG)
+else
+  Indocker.set_log_level(Logger::INFO)
+end
+
+Indocker.set_configuration_name(options[:configuration])
+require_relative '../../setup'
+
+
+Indocker.run(options[:container], options[:force_restart])

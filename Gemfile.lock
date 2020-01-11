@@ -2,11 +2,13 @@ PATH
   remote: .
   specs:
     indocker (0.1.1)
+      net-ssh
 
 GEM
   remote: https://rubygems.org/
   specs:
     diff-lcs (1.3)
+    net-ssh (5.2.0)
     rake (10.5.0)
     rspec (3.9.0)
       rspec-core (~> 3.9.0)

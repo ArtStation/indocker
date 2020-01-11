@@ -1,0 +1,120 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require_relative 'utils/configurations'
+
+configurations = list_configurations(File.expand_path(File.join(__dir__, '../configurations')))
+
+ARGV << '-h' if ARGV.empty?
+
+options = {
+  skip_build: false,
+  force_restart: false,
+  skip_tags: [],
+  skip_force_restart: [],
+}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: indocker/bin/deploy [options]"
+
+  opts.on("-d", "--debug", "Debug mode") do |val|
+    options[:debug] = true
+  end
+
+  opts.on("-C", "--configuration REQUIRED", String, "Configuration name") do |val|
+    options[:configuration] = val
+  end
+
+  opts.on("-c", "--container OPTIONAL", String, "Deploy by container name") do |val|
+    options[:containers] ||= []
+    options[:containers].push(val.to_sym)
+  end
+
+  opts.on("-t", "--tag OPTIONAL", String, "Deploy containers by tag") do |val|
+    options[:tags] ||= []
+    options[:tags].push(val)
+  end
+
+  opts.on("-s", "--skip OPTIONAL", String, "Skip container during deployment") do |val|
+    options[:skip_containers] ||= []
+    options[:skip_containers] << val.to_sym
+  end
+
+  opts.on("-S", "--server OPTIONAL", String, "Deploy containers that include specfic server") do |val|
+    options[:servers] ||= []
+    options[:servers].push(val.to_sym)
+  end
+
+  opts.on("-D", "--skip-dependent", "Do not deploy dependent containers") do |val|
+    options[:skip_dependent] = true
+  end
+
+  opts.on("-f", "--force-restart", "Force to restart each container") do |val|
+    options[:force_restart] = true
+  end
+
+  opts.on("-F", "--skip-force-restart OPTIONAL", "Skip force restart of specific container for force restart mode") do |val|
+    options[:skip_force_restart].push(val.to_sym)
+  end
+
+  opts.on("-B", "--skip-build", "Skip image build") do |val|
+    options[:skip_build] = true
+  end
+
+  opts.on("-y", "--auto-confirm", "Automatically confirm deployment") do |val|
+    options[:auto_confirm] = true
+  end
+
+  opts.on("-r", "--require-confirmation", "Require deploy confirmation") do |val|
+    options[:require_confirmation] = true
+  end
+
+  opts.on("-T", "--skip-tag OPTIONAL", "Skip containers tagged by specific tags") do |val|
+    options[:skip_tags].push(val)
+  end
+
+  opts.on_tail("-h", "--help", "Show help") do
+    puts opts
+    exit
+  end
+end.parse!
+
+if !options.has_key?(:configuration)
+  puts "You should specify configuration using -C or --configuration option.\nAvailable configurations: #{configurations.sort.join(', ')}"
+  exit 1
+end
+
+if !configurations.include?(options[:configuration])
+  puts "Invalid configuration provided: #{options[:configuration]}.\nAvailable configurations: #{configurations.inspect}"
+  exit 1
+end
+
+begin
+  require 'indocker'
+rescue LoadError
+  puts "InDocker has been moved into a separate gem. Please install using `gem install indocker`"
+  exit
+end
+
+if options[:debug]
+  Indocker.set_log_level(Logger::DEBUG)
+else
+  Indocker.set_log_level(Logger::INFO)
+end
+
+Indocker.set_configuration_name(options[:configuration])
+require_relative '../setup'
+
+Indocker.deploy(
+  containers: options[:containers] || [],
+  tags: options[:tags] || [],
+  skip_containers: options[:skip_containers] || [],
+  skip_dependent: !!options[:skip_dependent],
+  servers: options[:servers] || [],
+  skip_build: options[:skip_build],
+  force_restart: options[:force_restart],
+  skip_tags: options[:skip_tags] || [],
+  skip_force_restart: options[:skip_force_restart] || [],
+  auto_confirm: !!options[:auto_confirm],
+  require_confirmation: !!options[:require_confirmation],
+)
