@@ -60,6 +60,14 @@ class Indocker::DockerRunArgs
         end
       end
 
+      sysctl = container.get_start_option(:sysctl)
+      
+      if sysctl
+        Array(sysctl).each do |val|
+          args.push("--sysctl #{val}")
+        end
+      end
+
       if container.is_daemonized?
         args.push("--detach")
       end
