@@ -14,9 +14,8 @@ class Indocker::ContextArgs
     end
 
     value = @context_args.fetch(name) do
-      Indocker.logger.error("build arg '#{format_arg(name)}' is not defined#{@container ? " for container :#{@container.name}" : ""}")
-      Indocker.logger.error("available args: #{@context_args.inspect}")
-      exit 1
+      Indocker.logger.warn("build arg '#{format_arg(name)}' is not defined#{@container ? " for container :#{@container.name}" : ""}")
+      Indocker.logger.warn("available args: #{@context_args.inspect}")
     end
 
     if value.is_a?(Hash)
