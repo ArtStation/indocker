@@ -67,13 +67,15 @@ class Indocker::ConfigurationDeployer
       )
 
       remote_operations = sync_indocker(servers)
-
       wait_remote_operations(remote_operations)
 
-      remote_operations += sync_env_files(deploy_servers, configuration.env_files)
-      remote_operations += pull_repositories(clonner, build_servers, configuration.repositories)
-      remote_operations += sync_artifacts(clonner, configuration.artifact_servers)
+      remote_operations = sync_env_files(deploy_servers, configuration.env_files)
+      wait_remote_operations(remote_operations)
 
+      remote_operations = pull_repositories(clonner, build_servers, configuration.repositories)
+      wait_remote_operations(remote_operations)
+
+      remote_operations = sync_artifacts(clonner, configuration.artifact_servers)
       wait_remote_operations(remote_operations)
 
       update_crontab_redeploy_rules(configuration, build_servers.first)
