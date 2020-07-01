@@ -17,4 +17,14 @@ class Indocker::Server
       super
     end
   end
+
+  def synchronize(&block)
+    semaphore.synchronize do
+      block.call if block_given?
+    end
+  end
+
+  def semaphore
+    @semaphore ||= Mutex.new
+  end
 end
