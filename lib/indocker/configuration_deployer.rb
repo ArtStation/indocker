@@ -382,33 +382,35 @@ class Indocker::ConfigurationDeployer
         @progress.start_syncing_artifact(server, artifact)
 
         thread = Thread.new do
-          session = Indocker::SshSession.new(
-            host: server.host,
-            user: server.user,
-            port: server.port,
-            logger: @logger
-          )
+          server.synchronize do
+            session = Indocker::SshSession.new(
+              host: server.host,
+              user: server.user,
+              port: server.port,
+              logger: @logger
+            )
 
-          @logger.info("Pulling git artifact  #{artifact.name.to_s.green} for #{server.user}@#{server.host}")
-          result = clonner.clone(session, artifact.repository)
+            @logger.info("Pulling git artifact  #{artifact.name.to_s.green} for #{server.user}@#{server.host}")
+            result = clonner.clone(session, artifact.repository)
 
-          if result.exit_code != 0
-            @logger.error("Artifact repository :#{artifact.repository.name} was not clonned")
-            @logger.error(result.stderr_data)
-            exit 1
+            if result.exit_code != 0
+              @logger.error("Artifact repository :#{artifact.repository.name} was not clonned")
+              @logger.error(result.stderr_data)
+              exit 1
+            end
+
+            source_path = File.join(artifact.repository.clone_path, artifact.source_path)
+            result = session.exec!("mkdir -p #{artifact.target_path}")
+            result = session.exec!("cp -r #{source_path} #{artifact.target_path}")
+
+            if !result.success?
+              @logger.error(result.stdout_data)
+              @logger.error(result.stderr_data)
+              exit 1
+            end
+
+            @progress.finish_syncing_artifact(server, artifact)
           end
-
-          source_path = File.join(artifact.repository.clone_path, artifact.source_path)
-          result = session.exec!("mkdir -p #{artifact.target_path}")
-          result = session.exec!("cp -r #{source_path} #{artifact.target_path}")
-
-          if !result.success?
-            @logger.error(result.stdout_data)
-            @logger.error(result.stderr_data)
-            exit 1
-          end
-
-          @progress.finish_syncing_artifact(server, artifact)
         end
 
         RemoteOperation.new(thread, server, :artifact_sync)
