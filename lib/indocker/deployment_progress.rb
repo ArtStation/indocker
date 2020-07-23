@@ -70,9 +70,10 @@ class Indocker::DeploymentProgress
   end
 
   def setup(binaries_servers:, build_servers:, deploy_servers:, env_files:, artifact_servers:,
-            repositories:, force_restart:, skip_build:, containers:)
+            repositories:, force_restart:, skip_build:, skip_deploy:, containers:)
     @force_restart = force_restart
-    @skip_build = skip_build
+    @skip_build    = skip_build
+    @skip_deploy   = skip_deploy
 
     binaries_servers.each do |server|
       @synced_binaries[server] = {
@@ -248,6 +249,10 @@ class Indocker::DeploymentProgress
 
     if @skip_build
       @logger.info("Warning: Image build is skipped for all containers".purple)
+    end
+
+    if @skip_deploy
+      @logger.info("Warning: All container deployment is skipped".purple)
     end
 
     if @force_restart

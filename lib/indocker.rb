@@ -318,21 +318,26 @@ module Indocker
       builder
     end
 
-    def deploy(containers: [], skip_tags: [], tags: [], skip_dependent: false, skip_containers: [], servers: [], skip_build: false, force_restart: false, skip_force_restart: [], auto_confirm: false, require_confirmation: false)
+    def deploy(containers: [], skip_tags: [], tags: [], skip_dependent: false, 
+      skip_containers: [], servers: [], skip_build: false, skip_deploy: false,
+      force_restart: false, skip_force_restart: [], auto_confirm: false, 
+      require_confirmation: false)
+
       Indocker::ConfigurationDeployer
         .new(Indocker.logger)
         .run(
-          configuration: configuration,
-          deploy_containers: containers,
-          deploy_tags: tags,
-          skip_dependent: skip_dependent,
-          skip_containers: skip_containers,
-          servers: servers,
-          skip_build: skip_build,
-          force_restart: force_restart,
-          skip_tags: skip_tags,
-          skip_force_restart: skip_force_restart,
-          auto_confirm: auto_confirm,
+          configuration:        configuration,
+          deploy_containers:    containers,
+          deploy_tags:          tags,
+          skip_dependent:       skip_dependent,
+          skip_containers:      skip_containers,
+          servers:              servers,
+          skip_build:           skip_build,
+          skip_deploy:          skip_deploy,
+          force_restart:        force_restart,
+          skip_tags:            skip_tags,
+          skip_force_restart:   skip_force_restart,
+          auto_confirm:         auto_confirm,
           require_confirmation: require_confirmation,
         )
     end

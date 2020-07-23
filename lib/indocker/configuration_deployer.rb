@@ -18,7 +18,8 @@ class Indocker::ConfigurationDeployer
   end
 
   def run(configuration:, deploy_containers:, skip_tags:, deploy_tags:, skip_dependent:,
-          skip_containers:, servers:, skip_build:, force_restart:, skip_force_restart:, auto_confirm:, require_confirmation:)
+          skip_containers:, servers:, skip_build:, skip_deploy:, force_restart:, skip_force_restart:, 
+          auto_confirm:, require_confirmation:)
     build_context_pool = nil
     deployer = nil
 
@@ -29,6 +30,10 @@ class Indocker::ConfigurationDeployer
 
       if skip_build
         @logger.warn("WARNING. Images build step will be skipped")
+      end
+
+      if skip_deploy
+        @logger.warn("WARNING. Images deploy step will be skipped")
       end
 
       preload_containers(configuration)
@@ -56,13 +61,14 @@ class Indocker::ConfigurationDeployer
 
       @progress.setup(
         binaries_servers: servers,
-        build_servers: build_servers,
-        deploy_servers: deploy_servers,
-        env_files: configuration.env_files.keys,
-        repositories: configuration.repositories.keys,
-        force_restart: force_restart,
-        skip_build: skip_build,
-        containers: containers,
+        build_servers:    build_servers,
+        deploy_servers:   deploy_servers,
+        env_files:        configuration.env_files.keys,
+        repositories:     configuration.repositories.keys,
+        force_restart:    force_restart,
+        skip_build:       skip_build,
+        skip_deploy:      skip_deploy,
+        containers:       containers,
         artifact_servers: configuration.artifact_servers,
       )
 
@@ -81,7 +87,17 @@ class Indocker::ConfigurationDeployer
       update_crontab_redeploy_rules(configuration, build_servers.first)
 
       containers.uniq.each do |container|
-        recursively_deploy_container(configuration, deployer, build_context_pool, container, containers, skip_build, force_restart, skip_force_restart)
+        recursively_deploy_container(
+          configuration, 
+          deployer, 
+          build_context_pool, 
+          container, 
+          containers, 
+          skip_build, 
+          skip_deploy, 
+          force_restart, 
+          skip_force_restart
+        )
       end
 
       Thread
@@ -285,9 +301,21 @@ class Indocker::ConfigurationDeployer
     build_context.set_compiled(image)
   end
 
-  def recursively_deploy_container(configuration, deployer, build_context_pool, container, containers, skip_build, force_restart, skip_force_restart)
+  def recursively_deploy_container(configuration, deployer, build_context_pool, container, 
+    containers, skip_build, skip_deploy, force_restart, skip_force_restart)
+
     container.dependent_containers.each do |container|
-      recursively_deploy_container(configuration, deployer, build_context_pool, container, containers, skip_build, force_restart, skip_force_restart)
+      recursively_deploy_container(
+        configuration, 
+        deployer, 
+        build_context_pool, 
+        container, 
+        containers, 
+        skip_build, 
+        skip_deploy,
+        force_restart, 
+        skip_force_restart
+      )
     end
 
     return if !containers.include?(container)
@@ -304,7 +332,9 @@ class Indocker::ConfigurationDeployer
 
     @progress.finish_building_container(container)
 
-    deployer.deploy(container, force_restart, skip_force_restart, @progress)
+    if !skip_deploy
+      deployer.deploy(container, force_restart, skip_force_restart, @progress)
+    end
   end
 
   class RemoteOperation

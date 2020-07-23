@@ -8,9 +8,10 @@ configurations = list_configurations(File.expand_path(File.join(__dir__, '../con
 ARGV << '-h' if ARGV.empty?
 
 options = {
-  skip_build: false,
-  force_restart: false,
-  skip_tags: [],
+  skip_build:         false,
+  skip_deploy:        false,
+  force_restart:      false,
+  skip_tags:          [],
   skip_force_restart: [],
 }
 
@@ -61,6 +62,10 @@ OptionParser.new do |opts|
     options[:skip_build] = true
   end
 
+  opts.on("-b", "--skip-deploy", "Skip image deploy") do |val|
+    options[:skip_deploy] = true
+  end
+
   opts.on("-y", "--auto-confirm", "Automatically confirm deployment") do |val|
     options[:auto_confirm] = true
   end
@@ -106,15 +111,16 @@ Indocker.set_configuration_name(options[:configuration])
 require_relative '../setup'
 
 Indocker.deploy(
-  containers: options[:containers] || [],
-  tags: options[:tags] || [],
-  skip_containers: options[:skip_containers] || [],
-  skip_dependent: !!options[:skip_dependent],
-  servers: options[:servers] || [],
-  skip_build: options[:skip_build],
-  force_restart: options[:force_restart],
-  skip_tags: options[:skip_tags] || [],
-  skip_force_restart: options[:skip_force_restart] || [],
-  auto_confirm: !!options[:auto_confirm],
+  containers:           options[:containers] || [],
+  tags:                 options[:tags] || [],
+  skip_containers:      options[:skip_containers] || [],
+  skip_dependent:       !!options[:skip_dependent],
+  servers:              options[:servers] || [],
+  skip_build:           options[:skip_build],
+  skip_deploy:          options[:skip_deploy],
+  force_restart:        options[:force_restart],
+  skip_tags:            options[:skip_tags] || [],
+  skip_force_restart:   options[:skip_force_restart] || [],
+  auto_confirm:         !!options[:auto_confirm],
   require_confirmation: !!options[:require_confirmation],
 )
