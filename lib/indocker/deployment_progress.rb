@@ -252,7 +252,7 @@ class Indocker::DeploymentProgress
     end
 
     if @skip_deploy
-      @logger.info("Warning: Image deploy is skipped for all containers".purple)
+      @logger.info("Warning: All container deployment is skipped".purple)
     end
 
     if @force_restart
