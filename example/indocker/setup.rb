@@ -3,7 +3,7 @@ require 'indocker'
 root_dir = File.join(__dir__, '..', '..')
 
 Indocker.set_root_dir(__dir__)
-Indocker.set_deploy_dir(File.join(root_dir, 'tmp', 'deployment'))
+Indocker.set_deploy_dir('~/deployment')
 
 Indocker.set_dockerignore [
   'Dockerfile',
