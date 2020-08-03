@@ -8,11 +8,20 @@ Docker Containers Deployment
 $ gem install indocker
 ```
 
-## Development: Launch example app
+## Development: Launch example app locally
 
 ```ruby
 cd example
-bundle exec indocker/bin/deploy -C dev -c ruby -d
+indocker/bin/deploy -C dev -c ruby -d
+```
+
+## Development: Launch example with external host
+
+NOTE: Default external host requires extra permissions.
+
+```ruby
+cd example
+indocker/bin/deploy -C external -c ruby -d
 ```
 
 ## License

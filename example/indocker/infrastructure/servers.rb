@@ -6,3 +6,14 @@ Indocker.add_server(
     port: 22
   )
 )
+
+external_host = ENV['INDOCKER_EXTERNAL_HOST'] || 'indocker-test.artstationstaging.com'
+external_user = ENV['INDOCKER_EXTERNAL_USER'] || 'artstation'
+Indocker.add_server(
+  Indocker::Server.new(
+    name: :external,
+    host: external_host,
+    user: external_user,
+    port: 22
+  )
+)
