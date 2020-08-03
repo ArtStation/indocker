@@ -1,5 +1,7 @@
 # InDocker
 
+[![Codeship Status for ArtStation/indocker](https://app.codeship.com/projects/bf8888c0-b7e4-0138-fc1f-7e2faa53772a/status?branch=master)](https://app.codeship.com/projects/404716)
+
 Docker Containers Deployment
 
 ## Installation
