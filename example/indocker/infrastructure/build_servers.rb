@@ -8,7 +8,7 @@ Indocker.add_build_server(
 )
 
 external_host = ENV['INDOCKER_EXTERNAL_HOST'] || 'indocker-test.artstationstaging.com'
-external_user = ENV['INDOCKER_EXTERNAL_USER'] || 'artstation'
+external_user = ENV['INDOCKER_EXTERNAL_USER'] || 'indocker'
 Indocker.add_build_server(
   Indocker::BuildServer.new(
     name: :external_bs,
