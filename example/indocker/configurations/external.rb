@@ -5,5 +5,8 @@ Indocker
   .enabled_containers(
     ruby: {
       servers: [:external],
+    },
+    container_failing_build: {
+      servers: [:external],
     }
   )

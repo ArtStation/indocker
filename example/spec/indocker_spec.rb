@@ -5,7 +5,13 @@ RSpec.describe Indocker do
     expect(Indocker::VERSION).not_to be nil
   end
 
-  it "deploys container to an external server" do
+  it "properly handles successful build" do
     launch_deployment(configuration: "external", containers: [:ruby])
+  end
+
+  it "properly handles failed build" do
+    expect{
+      launch_deployment(configuration: "external", containers: [:container_failing_build])
+    }.to raise(SystemExit)
   end
 end
