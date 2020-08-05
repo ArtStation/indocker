@@ -16,94 +16,98 @@ class Indocker::ConfigurationDeployer
     )
   end
 
-  def run(configuration:, deploy_containers:, skip_tags:, deploy_tags:, skip_dependent:,
-          skip_containers:, servers:, skip_build:, skip_deploy:, force_restart:, skip_force_restart:, 
-          auto_confirm:, require_confirmation:)
+  # Launch deployment & measure the benchmark
+  def run(configuration:, deployment_policy:)
     build_context_pool = nil
     deployer = nil
 
     time = Benchmark.realtime do
-      if force_restart
+      if deployment_policy.force_restart
         @logger.warn("WARNING. All containers will be forced to restart.")
       end
 
-      if skip_build
+      if deployment_policy.skip_build
         @logger.warn("WARNING. Images build step will be skipped")
       end
 
-      if skip_deploy
+      if deployment_policy.skip_deploy
         @logger.warn("WARNING. Images deploy step will be skipped")
       end
 
-      containers = find_containers_to_deploy(configuration, deploy_containers, deploy_tags, skip_dependent, skip_containers, servers, skip_tags, auto_confirm, require_confirmation)
-
-      clonner = Indocker::Repositories::Clonner.new(configuration, @logger)
-      build_context_pool = Indocker::BuildContextPool.new(configuration: configuration, logger: @logger, global_logger: @global_logger)
-      deployer = Indocker::ContainerDeployer.new(configuration: configuration, logger: @logger)
-      
-      @global_logger.info("Establishing ssh sessions to all servers...")
-      build_context_pool.create_sessions!
-      deployer.create_sessions!
-
-      build_servers = configuration
-        .build_servers
-        .uniq { |s| s.host }
-
-      deploy_servers = containers
-        .map(&:servers)
-        .flatten
-        .uniq { |s| s.host }
-
-      servers = (deploy_servers + build_servers).uniq { |s| s.host }
-
-      @progress.setup(
-        binaries_servers: servers,
-        build_servers:    build_servers,
-        deploy_servers:   deploy_servers,
-        env_files:        configuration.env_files.keys,
-        repositories:     configuration.repositories.keys,
-        force_restart:    force_restart,
-        skip_build:       skip_build,
-        skip_deploy:      skip_deploy,
-        containers:       containers,
-        artifact_servers: configuration.artifact_servers,
-      )
-
-      remote_operations = sync_indocker(servers)
-      wait_remote_operations(remote_operations)
-
-      remote_operations = sync_env_files(deploy_servers, configuration.env_files)
-      wait_remote_operations(remote_operations)
-
-      remote_operations = pull_repositories(clonner, build_servers, configuration.repositories)
-      wait_remote_operations(remote_operations)
-
-      remote_operations = sync_artifacts(clonner, configuration.artifact_servers)
-      wait_remote_operations(remote_operations)
-
-      update_crontab_redeploy_rules(configuration, build_servers.first)
-
-      containers.uniq.each do |container|
-        recursively_deploy_container(
-          configuration, 
-          deployer, 
-          build_context_pool, 
-          container, 
-          containers, 
-          skip_build, 
-          skip_deploy, 
-          force_restart, 
-          skip_force_restart
-        )
-      end
-
-      Thread
-        .list
-        .each { |t| t.join if t != Thread.current }
+      run!(configuration: configuration, deployment_policy: deployment_policy)
     end
 
     @global_logger.info("Deployment finished".green)
     @global_logger.info("Total time taken: #{time.round}s".green)
+  end
+
+  # The main flow of the deployment would happen in this method.
+  def run!(configuration:, deployment_policy:)
+    containers = find_containers_to_deploy(configuration, deployment_policy)
+
+    clonner = Indocker::Repositories::Clonner.new(configuration, @logger)
+    build_context_pool = Indocker::BuildContextPool.new(configuration: configuration, logger: @logger, global_logger: @global_logger)
+    deployer = Indocker::ContainerDeployer.new(configuration: configuration, logger: @logger)
+    
+    @global_logger.info("Establishing ssh sessions to all servers...")
+    build_context_pool.create_sessions!
+    deployer.create_sessions!
+
+    build_servers = configuration
+      .build_servers
+      .uniq { |s| s.host }
+
+    deploy_servers = containers
+      .map(&:servers)
+      .flatten
+      .uniq { |s| s.host }
+
+    servers = (deploy_servers + build_servers).uniq { |s| s.host }
+
+    @progress.setup(
+      binaries_servers: servers,
+      build_servers:    build_servers,
+      deploy_servers:   deploy_servers,
+      env_files:        configuration.env_files.keys,
+      repositories:     configuration.repositories.keys,
+      force_restart:    deployment_policy.force_restart,
+      skip_build:       deployment_policy.skip_build,
+      skip_deploy:      deployment_policy.skip_deploy,
+      containers:       containers,
+      artifact_servers: configuration.artifact_servers,
+    )
+
+    remote_operations = sync_indocker(servers)
+    wait_remote_operations(remote_operations)
+
+    remote_operations = sync_env_files(deploy_servers, configuration.env_files)
+    wait_remote_operations(remote_operations)
+
+    remote_operations = pull_repositories(clonner, build_servers, configuration.repositories)
+    wait_remote_operations(remote_operations)
+
+    remote_operations = sync_artifacts(clonner, configuration.artifact_servers)
+    wait_remote_operations(remote_operations)
+
+    update_crontab_redeploy_rules(configuration, build_servers.first)
+
+    containers.uniq.each do |container|
+      recursively_deploy_container(
+        configuration, 
+        deployer, 
+        build_context_pool, 
+        container, 
+        containers, 
+        deployment_policy.skip_build, 
+        deployment_policy.skip_deploy, 
+        deployment_policy.force_restart, 
+        deployment_policy.skip_force_restart
+      )
+    end
+
+    Thread
+      .list
+      .each { |t| t.join if t != Thread.current }
   ensure
     build_context_pool.close_sessions if build_context_pool
     deployer.close_sessions if deployer
@@ -124,18 +128,18 @@ class Indocker::ConfigurationDeployer
     end
   end
 
-  def find_containers_to_deploy(configuration, deploy_containers, deploy_tags, skip_dependent, skip_containers, servers, skip_tags, auto_confirm, require_confirmation)
+  def find_containers_to_deploy(configuration, deployment_policy)
     load_enabled_containers(configuration)
     
     containers = []
 
-    deploy_tags.each do |tag|
+    deployment_policy.deploy_tags.each do |tag|
       containers += configuration.containers.select do |container|
         container.tags.include?(tag)
       end
     end
 
-    skip_containers.each do |name|
+    deployment_policy.skip_containers.each do |name|
       container = configuration.containers.detect do |container|
         container.name == name
       end
@@ -152,7 +156,7 @@ class Indocker::ConfigurationDeployer
       end
     end
 
-    deploy_containers.each do |name|
+    deployment_policy.deploy_containers.each do |name|
       container = configuration.containers.detect do |container|
         container.name == name
       end
@@ -166,17 +170,17 @@ class Indocker::ConfigurationDeployer
       end
     end
 
-    if deploy_tags.empty? && deploy_containers.empty?
+    if deployment_policy.deploy_tags.empty? && deployment_policy.deploy_containers.empty?
       containers = configuration.containers.select do |container|
         configuration.enabled_containers.include?(container.name)
       end
     end
 
-    if !skip_dependent
+    if !deployment_policy.skip_dependent
       containers = collect_dependent_containers(containers)
     end
 
-    if !skip_dependent
+    if !deployment_policy.skip_dependent
       containers = collect_soft_dependent_containers(containers, configuration)
     end
 
@@ -189,13 +193,13 @@ class Indocker::ConfigurationDeployer
 
     containers = containers
       .select { |container| configuration.container_enabled?(container) }
-      .select { |container| !skip_containers.include?(container.name) }
+      .select { |container| !deployment_policy.skip_containers.include?(container.name) }
       .select { |container|
-        (skip_tags & container.tags).empty?
+        (deployment_policy.skip_tags & container.tags).empty?
       }
 
-    if !servers.empty?
-      containers = containers.select {|c| !(c.servers.map(&:name) & servers).empty? }
+    if !deployment_policy.servers.empty?
+      containers = containers.select {|c| !(c.servers.map(&:name) & deployment_policy.servers).empty? }
     end
 
     if containers.empty?
@@ -204,6 +208,7 @@ class Indocker::ConfigurationDeployer
     else
       @global_logger.info("Following containers will be deployed:")
 
+      servers = deployment_policy.servers
       if servers.empty?
         servers = containers.map(&:servers).flatten.uniq.map(&:name)
       end
@@ -221,7 +226,7 @@ class Indocker::ConfigurationDeployer
         end
       end
 
-      if (require_confirmation || configuration.confirm_deployment) && !auto_confirm
+      if (deployment_policy.require_confirmation || configuration.confirm_deployment) && !deployment_policy.auto_confirm
         @global_logger.info("\n")
         @global_logger.info("Do you want to continue deployment? (y or n)")
         result = gets.chomp

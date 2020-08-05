@@ -88,6 +88,7 @@ module Indocker
   autoload :SshResultLogger, 'ssh_result_logger'
   autoload :DeploymentProgress, 'deployment_progress'
   autoload :DeploymentChecker, 'deployment_checker'
+  autoload :DeploymentPolicy, 'deployment_policy'
   autoload :CrontabRedeployRulesBuilder, 'crontab_redeploy_rules_builder'
   autoload :LoggerFactory, 'logger_factory'
 
@@ -324,22 +325,26 @@ module Indocker
       force_restart: false, skip_force_restart: [], auto_confirm: false, 
       require_confirmation: false)
 
+      deployment_policy = Indocker::DeploymentPolicy.new(
+        deploy_containers:    containers,
+        deploy_tags:          tags,
+        servers:              servers,
+        skip_dependent:       skip_dependent,
+        skip_containers:      skip_containers,
+        skip_build:           skip_build,
+        skip_deploy:          skip_deploy,
+        skip_tags:            skip_tags,
+        force_restart:        force_restart,
+        skip_force_restart:   skip_force_restart,
+        auto_confirm:         auto_confirm,
+        require_confirmation: require_confirmation,
+      )
+
       Indocker::ConfigurationDeployer
         .new(logger: Indocker.logger, global_logger: Indocker.global_logger)
         .run(
-          configuration:        configuration,
-          deploy_containers:    containers,
-          deploy_tags:          tags,
-          skip_dependent:       skip_dependent,
-          skip_containers:      skip_containers,
-          servers:              servers,
-          skip_build:           skip_build,
-          skip_deploy:          skip_deploy,
-          force_restart:        force_restart,
-          skip_tags:            skip_tags,
-          skip_force_restart:   skip_force_restart,
-          auto_confirm:         auto_confirm,
-          require_confirmation: require_confirmation,
+          configuration:     configuration,
+          deployment_policy: deployment_policy
         )
     end
 
