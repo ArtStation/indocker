@@ -7,7 +7,7 @@ Indocker.add_server(
   )
 )
 
-external_host = ENV['INDOCKER_EXTERNAL_HOST'] || 'indocker-test.artstationstaging.com'
+external_host = ENV['INDOCKER_EXTERNAL_HOST'] || 'indocker.artstn.ninja'
 external_user = ENV['INDOCKER_EXTERNAL_USER'] || 'indocker'
 Indocker.add_server(
   Indocker::Server.new(
