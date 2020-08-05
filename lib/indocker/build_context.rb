@@ -9,17 +9,18 @@ class Indocker::BuildContext
     @helper = Indocker::BuildContextHelper.new(@configuration, @build_server)
     @server = build_server
     @global_logger = global_logger
-
-    if build_server
-      @session = Indocker::SshSession.new(
-        host: build_server.host,
-        user: build_server.user,
-        port: build_server.port,
-        logger: @logger
-      )
-    end
-
     @compiled_images = Hash.new(false)
+  end
+
+  def create_session!
+    return unless @server
+
+    @session = Indocker::SshSession.new(
+      host: @server.host,
+      user: @server.user,
+      port: @server.port,
+      logger: @logger
+    )
   end
 
   def exec!(command)

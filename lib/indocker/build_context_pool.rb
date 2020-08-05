@@ -14,6 +14,10 @@ class Indocker::BuildContextPool
     end
   end
 
+  def create_sessions!
+    @contexts.each(&:create_session!)
+  end
+
   def get
     context = nil
 

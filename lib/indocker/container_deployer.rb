@@ -14,6 +14,10 @@ class Indocker::ContainerDeployer
     @deployed_servers = {}
   end
 
+  def create_sessions!
+    @server_pool.create_sessions!
+  end
+
   def deploy(container, force_restart, skip_force_restart, progress)
     return if @deployed_containers[container]
 

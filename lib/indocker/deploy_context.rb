@@ -9,15 +9,17 @@ class Indocker::DeployContext
     @configuration = configuration
     @server = server
     @restart_policy = Indocker::Containers::RestartPolicy.new(configuration, logger)
+  end
 
-    if server
-      @session = Indocker::SshSession.new(
-        host: server.host,
-        user: server.user,
-        port: server.port,
-        logger: @logger
-      )
-    end
+  def create_session!
+    return unless @server
+    
+    @session = Indocker::SshSession.new(
+      host: @server.host,
+      user: @server.user,
+      port: @server.port,
+      logger: @logger
+    )
   end
 
   def exec!(command)

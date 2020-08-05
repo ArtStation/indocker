@@ -35,17 +35,17 @@ class Indocker::ConfigurationDeployer
         @logger.warn("WARNING. Images deploy step will be skipped")
       end
 
-      preload_containers(configuration)
-
-      containers = find_deploy_containers(configuration, deploy_containers, deploy_tags, skip_dependent, skip_containers, servers, skip_tags, auto_confirm, require_confirmation)
-      containers = containers.uniq {|c| c.name}
+      containers = find_containers_to_deploy(configuration, deploy_containers, deploy_tags, skip_dependent, skip_containers, servers, skip_tags, auto_confirm, require_confirmation)
 
       clonner = Indocker::Repositories::Clonner.new(configuration, @logger)
-
-      @global_logger.info("Establishing ssh sessions to all servers...")
-
       build_context_pool = Indocker::BuildContextPool.new(configuration: configuration, logger: @logger, global_logger: @global_logger)
       deployer = Indocker::ContainerDeployer.new(configuration: configuration, logger: @logger)
+      
+      @global_logger.info("Establishing ssh sessions to all servers...")
+      build_context_pool.create_sessions!
+      deployer.create_sessions!
+
+      build_context_pool.create_sessions!
 
       build_servers = configuration
         .build_servers
@@ -126,14 +126,9 @@ class Indocker::ConfigurationDeployer
     end
   end
 
-  def preload_containers(configuration)
-    configuration.enabled_containers.each do |container_name|
-      path = Indocker.container_files[container_name]
-      require path
-    end
-  end
-
-  def find_deploy_containers(configuration, deploy_containers, deploy_tags, skip_dependent, skip_containers, servers, skip_tags, auto_confirm, require_confirmation)
+  def find_containers_to_deploy(configuration, deploy_containers, deploy_tags, skip_dependent, skip_containers, servers, skip_tags, auto_confirm, require_confirmation)
+    load_enabled_containers(configuration)
+    
     containers = []
 
     deploy_tags.each do |tag|
@@ -239,7 +234,14 @@ class Indocker::ConfigurationDeployer
         end
       end
 
-      containers
+      containers.uniq {|c| c.name}
+    end
+  end
+
+  def load_enabled_containers(configuration)
+    configuration.enabled_containers.each do |container_name|
+      path = Indocker.container_files[container_name]
+      require path
     end
   end
 
