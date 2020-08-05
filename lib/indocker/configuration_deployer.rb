@@ -45,8 +45,6 @@ class Indocker::ConfigurationDeployer
       build_context_pool.create_sessions!
       deployer.create_sessions!
 
-      build_context_pool.create_sessions!
-
       build_servers = configuration
         .build_servers
         .uniq { |s| s.host }
