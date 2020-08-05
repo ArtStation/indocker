@@ -5,13 +5,27 @@ RSpec.describe Indocker do
     expect(Indocker::VERSION).not_to be nil
   end
 
-  it "properly handles successful build" do
-    launch_deployment(configuration: "external", containers: [:ruby])
+  describe "successful deployment" do
+    it "doesn't raise any error" do
+      expect{
+        launch_deployment(containers: [:ruby])
+      }.to_not raise_error
+    end
+
+    it "shows a message about successful deploy" do
+      allow(Indocker.global_logger).to receive(:info).at_least(:once)
+      
+      launch_deployment(containers: [:ruby])
+
+      expect(Indocker.global_logger).to have_received(:info).at_least(:once).with(/Deployment finished/)
+    end
   end
 
-  it "properly handles failed build" do
-    expect{
-      launch_deployment(configuration: "external", containers: [:container_failing_build])
-    }.to raise(SystemExit)
+  describe "failed build" do
+    it "exits with an error" do
+      expect{
+        launch_deployment(containers: [:container_failing_build])
+      }.to raise_error(SystemExit)
+    end
   end
 end

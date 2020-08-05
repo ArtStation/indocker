@@ -5,12 +5,11 @@ require 'tempfile'
 class Indocker::ConfigurationDeployer
   REMOTE_OPERATION_TIMEOUT = 60
 
-  def initialize(logger)
+  def initialize(logger:, global_logger:)
     Thread.abort_on_exception = true # abort all threads if exception occurs
 
     @logger = logger
-    @global_logger = Logger.new(STDOUT)
-    @global_logger.formatter = logger.formatter
+    @global_logger = global_logger
 
     @progress = Indocker::DeploymentProgress.new(
       Indocker.logger.level == Logger::DEBUG ? nil : Logger.new(STDOUT)
@@ -45,7 +44,7 @@ class Indocker::ConfigurationDeployer
 
       @global_logger.info("Establishing ssh sessions to all servers...")
 
-      build_context_pool = Indocker::BuildContextPool.new(configuration: configuration, logger: @logger)
+      build_context_pool = Indocker::BuildContextPool.new(configuration: configuration, logger: @logger, global_logger: @global_logger)
       deployer = Indocker::ContainerDeployer.new(configuration: configuration, logger: @logger)
 
       build_servers = configuration
@@ -349,7 +348,6 @@ class Indocker::ConfigurationDeployer
   end
 
   def pull_repositories(clonner, servers, repositories)
-    @logger.info("{timestamp}")
     @logger.info("Clonning/pulling repositories")
 
     remote_operations = []
@@ -402,7 +400,6 @@ class Indocker::ConfigurationDeployer
   end
 
   def sync_artifacts(clonner, artifact_servers)
-    @logger.info("{timestamp}")
     @logger.info("Syncing git artifacts")
 
     remote_operations = []
@@ -454,8 +451,6 @@ class Indocker::ConfigurationDeployer
     redeploy_containers = configuration.containers.select {|c| c.redeploy_schedule}.uniq
     return if redeploy_containers.empty?
 
-    @logger.info("{timestamp}")
-
     deploy_user       = "#{server.user}@#{server.host}"
     crontab_filepath  = Indocker.redeploy_crontab_path
 
@@ -480,8 +475,6 @@ class Indocker::ConfigurationDeployer
   end
 
   def sync_indocker(servers)
-    @logger.info("{timestamp}")
-
     servers.map do |server|
       @progress.start_syncing_binaries(server)
 
@@ -512,8 +505,6 @@ class Indocker::ConfigurationDeployer
   end
 
   def sync_env_files(servers, env_files)
-    @logger.info("{timestamp}")
-
     remote_operations = []
 
     servers.map do |server|

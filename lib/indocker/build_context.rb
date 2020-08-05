@@ -3,11 +3,12 @@ require 'fileutils'
 class Indocker::BuildContext
   attr_reader :session, :server, :configuration, :helper, :logger
 
-  def initialize(configuration:, build_server:, logger:)
+  def initialize(configuration:, build_server:, logger:, global_logger:)
     @configuration = configuration
     @logger = logger
     @helper = Indocker::BuildContextHelper.new(@configuration, @build_server)
     @server = build_server
+    @global_logger = global_logger
 
     if build_server
       @session = Indocker::SshSession.new(
@@ -69,10 +70,10 @@ class Indocker::BuildContext
       build_args = args.join(' ')
 
       res = Indocker::Docker.build(image.local_registry_url, build_args)
-
+      
       if res.exit_status != 0
-        @logger.error("image compilation :#{image.name} failed")
-        @logger.error(res.stdout)
+        @global_logger.error("image compilation :#{image.name} failed")
+        @global_logger.error(res.stdout)
         exit 1
       end
 

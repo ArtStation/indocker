@@ -17,10 +17,10 @@ end
 def launch_deployment(options = {})
   require_relative '../indocker/bin/utils/configurations'
 
-  Indocker.set_configuration_name(options[:configuration])
+  Indocker.set_configuration_name(options[:configuration] || "external")
   require_relative '../indocker/setup'
 
-  Indocker.set_log_level(Logger::DEBUG)
+  Indocker.set_log_level(options[:debug] ? Logger::DEBUG : Logger::INFO)
 
   Indocker.deploy(
     containers:           options[:containers] || [],

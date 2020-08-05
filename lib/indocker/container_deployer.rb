@@ -34,7 +34,6 @@ class Indocker::ContainerDeployer
 
       exec_proc.call do
         deploy_context = @server_pool.get(server)
-        @logger.info("{timestamp}")
         @logger.info("Deploying container: #{container.name.to_s.green} to #{server.user}@#{server.host}")
 
         command_output  = @logger.debug? ? "" : " > /dev/null"

@@ -1,13 +1,15 @@
 class Indocker::BuildContextPool
-  def initialize(configuration:, logger:)
+  def initialize(configuration:, logger:, global_logger:)
     @logger = logger
     @configuration = configuration
+    @global_logger = global_logger
 
     @contexts = configuration.build_servers.map do |build_server|
       Indocker::BuildContext.new(
         logger: @logger,
         configuration: configuration,
         build_server: build_server,
+        global_logger: @global_logger,
       )
     end
   end
