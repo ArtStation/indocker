@@ -12,12 +12,20 @@ class Indocker::ServerPool
     end
   end
 
+  def create_sessions!
+    @contexts.each(&:create_session!)
+  end
+
+  # NOTE: get is a bad name here, because we create a new connection.
+  # TODO: why we create a new connection here?
   def get(server)
-    Indocker::DeployContext.new(
+    context = Indocker::DeployContext.new(
       logger: @logger,
       configuration: @configuration,
       server: server,
     )
+    context.create_session!
+    context
   end
 
   def each(&proc)

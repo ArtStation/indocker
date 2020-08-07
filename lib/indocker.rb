@@ -88,7 +88,9 @@ module Indocker
   autoload :SshResultLogger, 'ssh_result_logger'
   autoload :DeploymentProgress, 'deployment_progress'
   autoload :DeploymentChecker, 'deployment_checker'
+  autoload :DeploymentPolicy, 'deployment_policy'
   autoload :CrontabRedeployRulesBuilder, 'crontab_redeploy_rules_builder'
+  autoload :LoggerFactory, 'logger_factory'
 
   class << self
     def set_export_command(command)
@@ -323,22 +325,26 @@ module Indocker
       force_restart: false, skip_force_restart: [], auto_confirm: false, 
       require_confirmation: false)
 
+      deployment_policy = Indocker::DeploymentPolicy.new(
+        deploy_containers:    containers,
+        deploy_tags:          tags,
+        servers:              servers,
+        skip_dependent:       skip_dependent,
+        skip_containers:      skip_containers,
+        skip_build:           skip_build,
+        skip_deploy:          skip_deploy,
+        skip_tags:            skip_tags,
+        force_restart:        force_restart,
+        skip_force_restart:   skip_force_restart,
+        auto_confirm:         auto_confirm,
+        require_confirmation: require_confirmation,
+      )
+
       Indocker::ConfigurationDeployer
-        .new(Indocker.logger)
+        .new(logger: Indocker.logger, global_logger: Indocker.global_logger)
         .run(
-          configuration:        configuration,
-          deploy_containers:    containers,
-          deploy_tags:          tags,
-          skip_dependent:       skip_dependent,
-          skip_containers:      skip_containers,
-          servers:              servers,
-          skip_build:           skip_build,
-          skip_deploy:          skip_deploy,
-          force_restart:        force_restart,
-          skip_tags:            skip_tags,
-          skip_force_restart:   skip_force_restart,
-          auto_confirm:         auto_confirm,
-          require_confirmation: require_confirmation,
+          configuration:     configuration,
+          deployment_policy: deployment_policy
         )
     end
 
@@ -390,54 +396,24 @@ module Indocker
       Indocker::BuildContextHelper.new(Indocker.configuration, nil)
     end
 
+    # This logger outputs progress of the deployment
+    # It will not output anything for deployment without debug option
     def logger
       @logger ||= begin
-        logger = if @log_level == Logger::DEBUG
-          Logger.new(STDOUT)
+        logger_stdout = if @log_level == Logger::DEBUG
+          STDOUT
         else
-          Logger.new(File.open(File::NULL, "w"))
+          File.open(File::NULL, "w")
         end
 
-        logger.level = @log_level || Logger::INFO
-
-        logger.formatter = proc do |severity, datetime, progname, msg|
-          level = Logger::SEV_LABEL.index(severity)
-
-          severity = case level
-          when Logger::INFO
-            severity.green
-          when Logger::WARN
-            severity.purple
-          when Logger::DEBUG
-            severity.yellow
-          when Logger::ERROR
-            severity.red
-          when Logger::FATAL
-            severity.red
-          else
-            severity
-          end
-
-          severity = severity.downcase
-
-          if logger.debug?
-            if msg == "{timestamp}"
-              ""
-            else
-              "#{datetime.strftime("%Y/%m/%d %H:%M:%S")} #{severity}: #{msg}\n"
-            end
-          else
-            # Use a nicer logging for not debug
-            if msg == "{timestamp}"
-              datetime.strftime("%Y/%m/%d %H:%M:%S\n").grey
-            else
-              "  #{severity}: #{msg}\n"
-            end
-          end
-        end
-
-        logger
+        Indocker::LoggerFactory.create(logger_stdout, @log_level)
       end
+    end
+
+    # Global logger would output data without dependency on how we deploy the progress
+    # Currently it will always output data to stdout
+    def global_logger
+      @global_logger ||= Indocker::LoggerFactory.create(STDOUT, @log_level)
     end
 
     def set_log_level(level)
