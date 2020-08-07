@@ -9,7 +9,8 @@ class Indocker::ImagesCompiler
     build_context = Indocker::BuildContext.new(
       configuration: configuration,
       build_server:  nil,
-      logger: Indocker.logger
+      logger: @logger,
+      global_logger: Indocker.global_logger
     )
 
     image_compiler = Indocker::Images::ImageCompiler.new
