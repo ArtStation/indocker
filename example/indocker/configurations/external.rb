@@ -6,7 +6,13 @@ Indocker
     ruby: {
       servers: [:external],
     },
-    container_failing_build: {
+    good_container: {
+      servers: [:external],
+    },
+    bad_container_build: {
+      servers: [:external],
+    },
+    bad_container_start: {
       servers: [:external],
     }
   )
