@@ -1,10 +1,9 @@
 class Indocker::CrontabRedeployRulesBuilder
-  CRONTAB = <<-CRONTAB
-SHELL=/bin/bash
-PATH=/usr/local/bundle/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  CRONTAB = <<~CRONTAB
+    SHELL=/bin/bash
+    PATH=/usr/local/bundle/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-%{rules}
-
+    %{rules}
   CRONTAB
 
   LOG_FILE      = "/var/log/indocker-redeploy-%{env}.log"
