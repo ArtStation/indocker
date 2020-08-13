@@ -85,7 +85,6 @@ module Indocker
   autoload :IndockerHelper, 'indocker_helper'
   autoload :ImagesCompiler, 'images_compiler'
   autoload :ContainerRunner, 'container_runner'
-  autoload :SshResultLogger, 'ssh_result_logger'
   autoload :DeploymentProgress, 'deployment_progress'
   autoload :DeploymentChecker, 'deployment_checker'
   autoload :DeploymentPolicy, 'deployment_policy'
