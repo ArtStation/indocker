@@ -67,10 +67,15 @@ module Indocker
     autoload :NetworkHelper, 'networks/network_helper'
   end
 
+  module Launchers
+    autoload :ConfigurationDeployer, 'launchers/configuration_deployer'
+    autoload :ImagesCompiler, 'launchers/images_compiler'
+    autoload :ContainerRunner, 'launchers/container_runner'
+  end
+
   autoload :HashMerger, 'hash_merger'
   autoload :BuildServer, 'build_server'
   autoload :Server, 'server'
-  autoload :ConfigurationDeployer, 'configuration_deployer'
   autoload :SshSession, 'ssh_session'
   autoload :BuildContextPool, 'build_context_pool'
   autoload :BuildContext, 'build_context'
@@ -86,8 +91,6 @@ module Indocker
   autoload :Rsync, 'rsync'
   autoload :EnvFileHelper, 'env_file_helper'
   autoload :IndockerHelper, 'indocker_helper'
-  autoload :ImagesCompiler, 'images_compiler'
-  autoload :ContainerRunner, 'container_runner'
   autoload :SshResultLogger, 'ssh_result_logger'
   autoload :DeploymentProgress, 'deployment_progress'
   autoload :DeploymentChecker, 'deployment_checker'
@@ -343,7 +346,7 @@ module Indocker
         require_confirmation: require_confirmation,
       )
 
-      Indocker::ConfigurationDeployer
+      Indocker::Launchers::ConfigurationDeployer
         .new(logger: Indocker.logger, global_logger: Indocker.global_logger)
         .run(
           configuration:     configuration,
@@ -372,7 +375,7 @@ module Indocker
     end
 
     def compile(images:, skip_dependent:)
-      Indocker::ImagesCompiler
+      Indocker::Launchers::ImagesCompiler
         .new(Indocker.logger)
         .compile(
           configuration: configuration,
@@ -382,7 +385,7 @@ module Indocker
     end
 
     def run(container_name, force_restart)
-      Indocker::ContainerRunner
+      Indocker::Launchers::ContainerRunner
         .new(Indocker.logger)
         .run(
           configuration: configuration,

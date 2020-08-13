@@ -1,4 +1,4 @@
-class Indocker::ContainerRunner
+class Indocker::Launchers::ContainerRunner
   def initialize(logger)
     @logger = logger
   end

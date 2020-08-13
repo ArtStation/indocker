@@ -1,4 +1,4 @@
-class Indocker::ImagesCompiler
+class Indocker::Launchers::ImagesCompiler
   def initialize(logger)
     @logger = logger
   end

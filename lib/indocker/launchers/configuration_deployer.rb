@@ -2,7 +2,7 @@ require 'timeout'
 require 'benchmark'
 require 'tempfile'
 
-class Indocker::ConfigurationDeployer
+class Indocker::Launchers::ConfigurationDeployer
   REMOTE_OPERATION_TIMEOUT = 60
 
   def initialize(logger:, global_logger:)

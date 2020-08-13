@@ -14,26 +14,11 @@ RSpec.configure do |config|
   end
 end
 
-def launch_deployment(options = {})
+def setup_indocker(options = {})
   require_relative '../indocker/bin/utils/configurations'
 
   Indocker.set_configuration_name(options[:configuration] || "external")
   require_relative '../indocker/setup'
 
   Indocker.set_log_level(options[:debug] ? Logger::DEBUG : Logger::INFO)
-
-  Indocker.deploy(
-    containers:           options[:containers] || [],
-    tags:                 options[:tags] || [],
-    skip_containers:      options[:skip_containers] || [],
-    skip_dependent:       !!options[:skip_dependent],
-    servers:              options[:servers] || [],
-    skip_build:           options[:skip_build],
-    skip_deploy:          options[:skip_deploy],
-    force_restart:        options[:force_restart],
-    skip_tags:            options[:skip_tags] || [],
-    skip_force_restart:   options[:skip_force_restart] || [],
-    auto_confirm:         !!options[:auto_confirm],
-    require_confirmation: !!options[:require_confirmation],
-  )
 end
