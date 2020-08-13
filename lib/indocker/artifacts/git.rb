@@ -1,13 +1,12 @@
 class Indocker::Artifacts::Git
-  attr_reader :name, :remote_name, :remote_url, :branch, :source_path, :target_path
+  attr_reader :name, :remote_name, :remote_url, :branch, :files
 
-  def initialize(name:, remote_name:, remote_url:, branch:, source_path:, target_path:)
+  def initialize(name:, remote_name:, remote_url:, branch:, files:)
     @name        = name
     @remote_name = remote_name
     @remote_url  = remote_url
     @branch      = branch
-    @source_path = source_path
-    @target_path = target_path
+    @files       = files
   end
 
   def repository

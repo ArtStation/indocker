@@ -431,14 +431,18 @@ class Indocker::ConfigurationDeployer
               exit 1
             end
 
-            source_path = File.join(artifact.repository.clone_path, artifact.source_path)
-            result = session.exec!("mkdir -p #{artifact.target_path}")
-            result = session.exec!("cp -r #{source_path} #{artifact.target_path}")
+            artifact.files.each do |artifact_item|
+              source_path = File.join(artifact.repository.clone_path, artifact_item.source_path)
+              target_path = artifact_item.target_path
 
-            if !result.success?
-              @logger.error(result.stdout_data)
-              @logger.error(result.stderr_data)
-              exit 1
+              result = session.exec!("mkdir -p #{target_path}")
+              result = session.exec!("cp -r #{source_path} #{target_path}")
+
+              if !result.success?
+                @logger.error(result.stdout_data)
+                @logger.error(result.stderr_data)
+                exit 1
+              end
             end
 
             @progress.finish_syncing_artifact(server, artifact)
