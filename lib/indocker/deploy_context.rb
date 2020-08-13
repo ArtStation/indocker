@@ -46,14 +46,14 @@ class Indocker::DeployContext
 
     container.networks.each do |network|
       Indocker::Docker.create_network(
-        Indocker::NetworkHelper.name(@configuration.name, network)
+        Indocker::Networks::NetworkHelper.name(@configuration.name, network)
       )
     end
 
     container.volumes.each do |volume|
       if volume.is_a?(Indocker::Volumes::External)
         Indocker::Docker.create_volume(
-          Indocker::VolumeHelper.name(@configuration.name, volume)
+          Indocker::Volumes::VolumeHelper.name(@configuration.name, volume)
         )
       end
     end

@@ -1,4 +1,4 @@
-class Indocker::Network
+class Indocker::Networks::Network
   attr_reader :name, :containers
 
   def initialize(name)

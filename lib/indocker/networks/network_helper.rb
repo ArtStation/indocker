@@ -1,4 +1,4 @@
-class Indocker::NetworkHelper
+class Indocker::Networks::NetworkHelper
   class << self
     def name(configuration_name, network)
       "#{configuration_name}_#{network.name}"

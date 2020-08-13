@@ -50,6 +50,7 @@ module Indocker
     autoload :Local, 'volumes/local'
     autoload :External, 'volumes/external'
     autoload :Repository, 'volumes/repository'
+    autoload :VolumeHelper, 'volumes/volume_helper'
   end
 
   module EnvFiles
@@ -59,6 +60,11 @@ module Indocker
 
   module Artifacts
     autoload :Git, 'artifacts/git'
+  end
+
+  module Networks
+    autoload :Network, 'networks/network'
+    autoload :NetworkHelper, 'networks/network_helper'
   end
 
   autoload :HashMerger, 'hash_merger'
@@ -72,14 +78,11 @@ module Indocker
   autoload :Shell, 'shell'
   autoload :Docker, 'docker'
   autoload :ContextArgs, 'context_args'
-  autoload :Network, 'network'
   autoload :ContainerDeployer, 'container_deployer'
   autoload :ServerPool, 'server_pool'
   autoload :DeployContext, 'deploy_context'
   autoload :ContainerHelper, 'container_helper'
   autoload :DockerRunArgs, 'docker_run_args'
-  autoload :VolumeHelper, 'volume_helper'
-  autoload :NetworkHelper, 'network_helper'
   autoload :Rsync, 'rsync'
   autoload :EnvFileHelper, 'env_file_helper'
   autoload :IndockerHelper, 'indocker_helper'
@@ -172,7 +175,7 @@ module Indocker
         raise ArgumentError.new("network :#{name} was already defined")
       end
 
-      networks.push(Indocker::Network.new(name))
+      networks.push(Indocker::Networks::Network.new(name))
     end
 
     def container_files
