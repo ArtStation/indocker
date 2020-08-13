@@ -50,21 +50,14 @@ class Indocker::ContainerDeployer
         result = deploy_context
           .session
           .exec!(
-            "cd #{Indocker::IndockerHelper.indocker_dir} && ./bin/remote/run -C #{Indocker.configuration_name} -c #{container.name} #{debug_options} #{command_output} #{force_restart_options}",
-            on_stdout: proc { |data|
-              @logger.info("[deploy] #{data}")
-            },
-            on_stderr: proc { |data|
-              @logger.error("[deploy] #{data}")
-            }
+            "cd #{Indocker::IndockerHelper.indocker_dir} && ./bin/remote/run -C #{Indocker.configuration_name} -c #{container.name} #{debug_options} #{command_output} #{force_restart_options}"
           )
-        
-        if result.exit_code != 0
-          @global_logger.error("[deploy] #{container.name.to_s.green} deployment for server #{server.name} failed")
-          puts result.stdout_data
-          exit 1 
-        end
 
+        Indocker::SshResultLogger
+          .new(@logger)
+          .log(result, "#{container.name.to_s.green} deployment for server #{server.name} failed")
+
+        exit 1 if result.exit_code != 0
         @logger.info("Container deployment to #{server.user}@#{server.host} finished: #{container.name.to_s.green}")
 
         deploy_context.close_session

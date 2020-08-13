@@ -46,7 +46,7 @@ class Indocker::ConfigurationDeployer
     containers = find_containers_to_deploy(configuration, deployment_policy)
 
     clonner = Indocker::Repositories::Clonner.new(configuration, @logger)
-    build_context_pool = Indocker::BuildContextPool.new(configuration: configuration, logger: @logger)
+    build_context_pool = Indocker::BuildContextPool.new(configuration: configuration, logger: @logger, global_logger: @global_logger)
     deployer = Indocker::ContainerDeployer.new(configuration: configuration, logger: @logger)
     
     @global_logger.info("Establishing ssh sessions to all servers...")
@@ -290,21 +290,15 @@ class Indocker::ConfigurationDeployer
       result = build_context
         .session
         .exec!(
-          "cd #{Indocker::IndockerHelper.indocker_dir} && ./bin/remote/compile -C #{Indocker.configuration_name} -i #{image.name} -s #{@logger.debug? ? '-d' : ''}",
-          on_stdout: proc { |data|
-            @logger.info("[compile] #{data}")
-          },
-          on_stderr: proc { |data|
-            @logger.error("[compile] #{data}")
-          }
+          "cd #{Indocker::IndockerHelper.indocker_dir} && ./bin/remote/compile -C #{Indocker.configuration_name} -i #{image.name} -s #{@logger.debug? ? '-d' : ''}"
         )
     end
 
-    if result.exit_code != 0
-      @global_logger.error("[compile] #{image.name.to_s.green} image compilation failed")
-      puts result.stdout_data
-      exit 1 
-    end
+    Indocker::SshResultLogger
+      .new(@logger)
+      .log(result, "#{image.name.to_s.green} image compilation failed")
+
+    exit 1 if result.exit_code != 0
 
     @logger.info("Image compilation completed #{image.name.to_s.green}. Time taken: #{time}")
 

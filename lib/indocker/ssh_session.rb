@@ -37,11 +37,11 @@ class Indocker::SshSession
     !@ssh
   end
 
-  def exec!(command, on_stdout: nil, on_stderr: nil)
+  def exec!(command)
     if local?
       exec_locally!(command)
     else
-      exec_remotely!(command, on_stdout: on_stdout, on_stderr: on_stderr)
+      exec_remotely!(command)
     end
   end
 
@@ -57,7 +57,7 @@ class Indocker::SshSession
       ExecResult.new(res.stdout, '', res.exit_status, nil)
     end
 
-    def exec_remotely!(command, on_stdout:, on_stderr:)
+    def exec_remotely!(command)
       if Indocker.export_command
         command = "#{Indocker.export_command} && #{command}"
       end
@@ -78,12 +78,10 @@ class Indocker::SshSession
 
           channel.on_data do |ch,data|
             stdout_data += data
-            on_stdout.call(data) if on_stdout
           end
 
           channel.on_extended_data do |ch,type,data|
             stderr_data += data
-            on_stderr.call(data) if on_stderr
           end
 
           channel.on_request('exit-status') do |ch,data|
