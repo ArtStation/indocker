@@ -8,7 +8,7 @@ PATH=/usr/local/bundle/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sb
   CRONTAB
 
   LOG_FILE      = "/var/log/indocker-redeploy-%{env}.log"
-  COMMAND       = "export TERM=xterm;#{Indocker.deploy_dir}/indocker/bin/deploy -C %{env} -f -B -y -c %{container_name}"
+  COMMAND       = "export TERM=xterm;%{deploy_dir}/indocker/bin/deploy -C %{env} -f -B -y -c %{container_name}"
   REDEPLOY_RULE = %Q{%{schedule} echo `date` "- %{command}..." >> %{log_file}; %{command} 1>/dev/null 2>>%{log_file}; echo `date` "- done, exitcode = $?" >> %{log_file}}
 
   def initialize(configuration:, logger:)
@@ -41,6 +41,7 @@ PATH=/usr/local/bundle/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sb
     COMMAND % {
       env:            env,
       container_name: container.name,
+      deploy_dir: Indocker.deploy_dir
     }
   end
 

@@ -1,6 +1,16 @@
 require "bundler/setup"
+
+require 'simplecov'
+SimpleCov.start do
+  add_filter "/example/"
+end
+
 require "indocker"
 require "pry"
+
+Dir.glob(File.join(".", "lib", '**', '*.rb')) do |file|
+  require_relative File.expand_path(file)
+end
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -15,10 +25,10 @@ RSpec.configure do |config|
 end
 
 def setup_indocker(options = {})
-  require_relative '../indocker/bin/utils/configurations'
+  require_relative '../example/indocker/bin/utils/configurations'
 
   Indocker.set_configuration_name(options[:configuration] || "external")
-  require_relative '../indocker/setup'
+  require_relative '../example/indocker/setup'
 
   Indocker.set_log_level(options[:debug] ? Logger::DEBUG : Logger::INFO)
 end
