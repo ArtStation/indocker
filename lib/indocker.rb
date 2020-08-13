@@ -73,18 +73,21 @@ module Indocker
     autoload :ContainerRunner, 'launchers/container_runner'
   end
 
+  module ServerPools
+    autoload :DeployServerPool, 'server_pools/deploy_server_pool'
+    autoload :BuildServerPool, 'server_pools/build_server_pool'
+  end
+
   autoload :HashMerger, 'hash_merger'
   autoload :BuildServer, 'build_server'
   autoload :Server, 'server'
   autoload :SshSession, 'ssh_session'
-  autoload :BuildContextPool, 'build_context_pool'
   autoload :BuildContext, 'build_context'
   autoload :BuildContextHelper, 'build_context_helper'
   autoload :Shell, 'shell'
   autoload :Docker, 'docker'
   autoload :ContextArgs, 'context_args'
   autoload :ContainerDeployer, 'container_deployer'
-  autoload :ServerPool, 'server_pool'
   autoload :DeployContext, 'deploy_context'
   autoload :ContainerHelper, 'container_helper'
   autoload :DockerRunArgs, 'docker_run_args'

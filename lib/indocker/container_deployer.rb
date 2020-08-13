@@ -5,7 +5,7 @@ class Indocker::ContainerDeployer
     @configuration = configuration
     @logger = logger
 
-    @server_pool = Indocker::ServerPool.new(
+    @server_pool = Indocker::ServerPools::DeployServerPool.new(
       configuration: @configuration,
       logger: logger
     )

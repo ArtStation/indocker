@@ -1,4 +1,4 @@
-class Indocker::BuildContextPool
+class Indocker::ServerPools::BuildServerPool
   def initialize(configuration:, logger:, global_logger:)
     @logger = logger
     @configuration = configuration

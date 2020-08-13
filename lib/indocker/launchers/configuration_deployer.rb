@@ -46,7 +46,7 @@ class Indocker::Launchers::ConfigurationDeployer
     containers = find_containers_to_deploy(configuration, deployment_policy)
 
     clonner = Indocker::Repositories::Clonner.new(configuration, @logger)
-    build_context_pool = Indocker::BuildContextPool.new(configuration: configuration, logger: @logger, global_logger: @global_logger)
+    build_context_pool = Indocker::ServerPools::BuildServerPool.new(configuration: configuration, logger: @logger, global_logger: @global_logger)
     deployer = Indocker::ContainerDeployer.new(configuration: configuration, logger: @logger)
     
     @global_logger.info("Establishing ssh sessions to all servers...")
