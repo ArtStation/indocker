@@ -74,6 +74,7 @@ module Indocker
   end
 
   module ServerPools
+    autoload :ServerConnection, 'server_pools/server_connection'
     autoload :DeployServerPool, 'server_pools/deploy_server_pool'
     autoload :DeployServerConnection, 'server_pools/deploy_server_connection'
     autoload :BuildServerPool, 'server_pools/build_server_pool'

@@ -17,7 +17,7 @@ class Indocker::ServerPools::DeployServerPool
   end
 
   # NOTE: get is a bad name here, because we create a new connection.
-  # TODO: why we create a new connection here?
+  # TODO: why we create a new connection here, instead of using existing one?
   def get(server)
     connection = Indocker::ServerPools::DeployServerConnection.new(
       logger: @logger,

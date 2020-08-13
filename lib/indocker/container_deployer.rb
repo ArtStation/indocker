@@ -37,30 +37,23 @@ class Indocker::ContainerDeployer
       end
 
       exec_proc.call do
-        deploy_context = @server_pool.get(server)
+        deploy_server = @server_pool.get(server)
         @logger.info("Deploying container: #{container.name.to_s.green} to #{server.user}@#{server.host}")
 
-        command_output  = @logger.debug? ? "" : " > /dev/null"
-        debug_options   = @logger.debug? ? "-d" : ""
-
-        if force_restart && !skip_force_restart.include?(container.name)
-          force_restart_options = force_restart ? "-f" : ""
-        end
-
-        result = deploy_context
-          .session
-          .exec!(
-            "cd #{Indocker::IndockerHelper.indocker_dir} && ./bin/remote/run -C #{Indocker.configuration_name} -c #{container.name} #{debug_options} #{command_output} #{force_restart_options}"
+        result = deploy_server
+          .run_container_remotely(
+            configuration_name: Indocker.configuration_name,
+            container_name:     container.name,
+            force_restart:      force_restart && !skip_force_restart.include?(container.name)
           )
 
-        Indocker::SshResultLogger
-          .new(@logger)
-          .log(result, "#{container.name.to_s.green} deployment for server #{server.name} failed")
-
-        exit 1 if result.exit_code != 0
+        if result.exit_code != 0
+          exit 1 
+        end
+        
         @logger.info("Container deployment to #{server.user}@#{server.host} finished: #{container.name.to_s.green}")
 
-        deploy_context.close_session
+        deploy_server.close_session
         progress.finish_deploying_container(container, server)
       end
     end

@@ -1,36 +1,17 @@
-class Indocker::ServerPools::DeployServerConnection
-  attr_reader :server, :session
+class Indocker::ServerPools::DeployServerConnection < Indocker::ServerPools::ServerConnection
+  def run_container_remotely(configuration_name:, container_name:, force_restart:)
+    command_output  = @logger.debug? ? "" : " > /dev/null"
+    debug_options   = @logger.debug? ? "-d" : ""
+    force_restart_options = force_restart ? "-f" : ""
 
-  def initialize(logger:, configuration:, server:)
-    @logger = logger
-    @configuration = configuration
-    @server = server
-  end
-
-  def create_session!
-    return unless @server
-    
-    @session = Indocker::SshSession.new(
-      host: @server.host,
-      user: @server.user,
-      port: @server.port,
-      logger: @logger
+    result = exec!(
+      "cd #{Indocker::IndockerHelper.indocker_dir} && ./bin/remote/run -C #{configuration_name} -c #{container_name} #{debug_options} #{command_output} #{force_restart_options}"
     )
-  end
 
-  def exec!(command)
-    @session.exec!(command)
-  end
-
-  def close_session
-    @session.close if @session
-  end
-
-  def set_busy(flag)
-    @busy = !!flag
-  end
-
-  def busy?
-    !!@busy
+    Indocker::SshResultLogger
+      .new(@logger)
+      .log(result, "#{container_name.to_s.green} deployment for server #{server.name} failed")
+    
+    result
   end
 end
