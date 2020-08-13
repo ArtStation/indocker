@@ -13,8 +13,7 @@ class Indocker::Launchers::ContainerRunner
 
     deploy_context = Indocker::DeployContext.new(
       logger: @logger,
-      configuration: configuration,
-      server: nil
+      configuration: configuration
     )
 
     container = configuration.containers.detect { |c| c.name == container_name }
