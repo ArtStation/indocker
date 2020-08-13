@@ -1,28 +1,26 @@
 class Indocker::ServerPools::BuildServerPool
-  def initialize(configuration:, logger:, global_logger:)
+  def initialize(configuration:, logger:)
     @logger = logger
     @configuration = configuration
-    @global_logger = global_logger
 
-    @contexts = configuration.build_servers.map do |build_server|
-      Indocker::BuildContext.new(
+    @connections = configuration.build_servers.map do |build_server|
+      Indocker::ServerPools::BuildServerConnection.new(
         logger: @logger,
         configuration: configuration,
-        build_server: build_server,
-        global_logger: @global_logger,
+        server: build_server,
       )
     end
   end
 
   def create_sessions!
-    @contexts.each(&:create_session!)
+    @connections.each(&:create_session!)
   end
 
   def get
     context = nil
 
     loop do
-      context = @contexts.detect {|c| !c.busy?}
+      context = @connections.detect {|c| !c.busy?}
       sleep(0.1)
       break if context
     end
@@ -31,11 +29,11 @@ class Indocker::ServerPools::BuildServerPool
   end
 
   def each(&proc)
-    @contexts.each(&proc)
+    @connections.each(&proc)
   end
 
   def close_sessions
-    @contexts.each(&:close_session)
+    @connections.each(&:close_session)
   rescue => e
     @logger.error("error during session close: #{e.inspect}")
   end

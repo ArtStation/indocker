@@ -14,11 +14,12 @@ class Indocker::Launchers::ConfigurationDeployer
     @progress = Indocker::DeploymentProgress.new(
       Indocker.logger.level == Logger::DEBUG ? nil : Logger.new(STDOUT)
     )
+    @compiled_images = Hash.new(false)
   end
 
   # Launch deployment & measure the benchmark
   def run(configuration:, deployment_policy:)
-    build_context_pool = nil
+    build_server_pool = nil
     deployer = nil
 
     time = Benchmark.realtime do
@@ -46,11 +47,11 @@ class Indocker::Launchers::ConfigurationDeployer
     containers = find_containers_to_deploy(configuration, deployment_policy)
 
     clonner = Indocker::Repositories::Clonner.new(configuration, @logger)
-    build_context_pool = Indocker::ServerPools::BuildServerPool.new(configuration: configuration, logger: @logger, global_logger: @global_logger)
+    build_server_pool = Indocker::ServerPools::BuildServerPool.new(configuration: configuration, logger: @logger)
     deployer = Indocker::ContainerDeployer.new(configuration: configuration, logger: @logger)
     
     @global_logger.info("Establishing ssh sessions to all servers...")
-    build_context_pool.create_sessions!
+    build_server_pool.create_sessions!
     deployer.create_sessions!
 
     build_servers = configuration
@@ -95,7 +96,7 @@ class Indocker::Launchers::ConfigurationDeployer
       recursively_deploy_container(
         configuration, 
         deployer, 
-        build_context_pool, 
+        build_server_pool, 
         container, 
         containers, 
         deployment_policy.skip_build, 
@@ -109,7 +110,7 @@ class Indocker::Launchers::ConfigurationDeployer
       .list
       .each { |t| t.join if t != Thread.current }
   ensure
-    build_context_pool.close_sessions if build_context_pool
+    build_server_pool.close_sessions if build_server_pool
     deployer.close_sessions if deployer
   end
 
@@ -272,12 +273,12 @@ class Indocker::Launchers::ConfigurationDeployer
     result.uniq
   end
 
-  def compile_image(configuration, image, build_context)
-    return if build_context.image_compiled?(image)
+  def compile_image(configuration, image, build_server)
+    return if @compiled_images[image]
 
     image.dependent_images.each do |dependent_image|
-      next if build_context.image_compiled?(dependent_image)
-      compile_image(configuration, dependent_image, build_context)
+      next if @compiled_images[image]
+      compile_image(configuration, dependent_image, build_server)
     end
 
     compiler = Indocker::Images::ImageCompiler.new
@@ -287,32 +288,30 @@ class Indocker::Launchers::ConfigurationDeployer
     result = nil
 
     time = Benchmark.realtime do
-      result = build_context
-        .session
-        .exec!(
-          "cd #{Indocker::IndockerHelper.indocker_dir} && ./bin/remote/compile -C #{Indocker.configuration_name} -i #{image.name} -s #{@logger.debug? ? '-d' : ''}"
+      result = build_server
+        .compile_image_remotely(
+          configuration_name: Indocker.configuration_name,
+          image_name:         image.name
         )
     end
 
-    Indocker::SshResultLogger
-      .new(@logger)
-      .log(result, "#{image.name.to_s.green} image compilation failed")
-
-    exit 1 if result.exit_code != 0
+    if result.exit_code != 0
+      exit 1
+    end
 
     @logger.info("Image compilation completed #{image.name.to_s.green}. Time taken: #{time}")
 
-    build_context.set_compiled(image)
+    @compiled_images[image] = true
   end
 
-  def recursively_deploy_container(configuration, deployer, build_context_pool, container, 
+  def recursively_deploy_container(configuration, deployer, build_server_pool, container, 
     containers, skip_build, skip_deploy, force_restart, skip_force_restart)
 
     container.dependent_containers.each do |container|
       recursively_deploy_container(
         configuration, 
         deployer, 
-        build_context_pool, 
+        build_server_pool, 
         container, 
         containers, 
         skip_build, 
@@ -327,11 +326,11 @@ class Indocker::Launchers::ConfigurationDeployer
     @progress.start_building_container(container)
 
     if !skip_build
-      build_context = build_context_pool.get
+      build_server = build_server_pool.get
 
-      build_context.set_busy(true)
-      compile_image(configuration, container.image, build_context)
-      build_context.set_busy(false)
+      build_server.set_busy(true)
+      compile_image(configuration, container.image, build_server)
+      build_server.set_busy(false)
     end
 
     @progress.finish_building_container(container)

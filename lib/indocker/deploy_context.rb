@@ -2,6 +2,8 @@ require 'digest'
 require 'fileutils'
 
 class Indocker::DeployContext
+  attr_reader :configuration, :logger
+
   def initialize(logger:, configuration:)
     @logger = logger
     @configuration = configuration
