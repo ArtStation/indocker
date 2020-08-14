@@ -18,6 +18,7 @@ require_relative 'infrastructure/registries'
 require_relative 'infrastructure/servers'
 require_relative 'infrastructure/build_servers'
 require_relative 'infrastructure/networks'
+require_relative 'infrastructure/artifacts'
 
 Indocker.set_bounded_contexts_dir(File.join(__dir__, 'bounded_contexts'))
 

@@ -3,3 +3,4 @@ Indocker
   .tags('good_container', 'console=true')
   .image(:good_container)
   .networks(:app_net)
+  .daemonize(false)

@@ -61,7 +61,6 @@ class Indocker::Images::ImageCompiler
     end
 
     build_context.build_image(image, compile_dir)
-    build_context.set_compiled(image)
 
     @compiled_images[image] = true
   end

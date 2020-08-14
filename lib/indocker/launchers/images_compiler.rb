@@ -8,7 +8,6 @@ class Indocker::Launchers::ImagesCompiler
 
     build_context = Indocker::BuildContext.new(
       configuration: configuration,
-      build_server:  nil,
       logger: @logger,
       global_logger: Indocker.global_logger
     )

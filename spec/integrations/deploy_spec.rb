@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe Indocker::Launchers::ConfigurationDeployer do
+RSpec.describe Indocker do
   before { setup_indocker(debug: true) }
 
   describe "successful deployment" do
