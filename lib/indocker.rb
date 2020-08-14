@@ -16,10 +16,6 @@ module Indocker
   module Configurations
     autoload :Configuration, 'configurations/configuration'
     autoload :ConfigurationBuilder, 'configurations/configuration_builder'
-
-    module Formatters
-      autoload :Stdout, 'configurations/formatters/stdout'
-    end
   end
 
   module Registries

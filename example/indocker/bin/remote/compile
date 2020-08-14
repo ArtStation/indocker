@@ -49,12 +49,8 @@ if !options.has_key?(:images)
   puts "At least one image should be provided"
 end
 
-begin
-  require 'indocker'
-rescue LoadError
-  puts "InDocker has been moved into a separate gem. Please install using `gem install indocker`"
-  exit 1
-end
+require 'rubygems'
+require 'indocker'
 
 if options[:debug]
   Indocker.set_log_level(Logger::DEBUG)
