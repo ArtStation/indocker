@@ -369,7 +369,7 @@ module Indocker
         )
     end
 
-    def launched?(contaner_name, servers: [])
+    def launched?(contaner_name, servers: nil)
       silent_logger = Logger.new(File.open(File::NULL, "w"))
       Indocker::DeploymentChecker
         .new(silent_logger, silent_logger)

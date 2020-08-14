@@ -258,15 +258,17 @@ class Indocker::Launchers::ConfigurationDeployer
   def collect_soft_dependent_containers(containers, configuration)
     result = containers
 
-    result += containers.map do |container|
-      container.soft_dependent_containers.reject do |soft_dependent_container|
-        configuration.enabled_containers.include?(soft_dependent_container.name) &&
-        Indocker.launched?(soft_dependent_container.name)
-      end
-    end.flatten
+    soft_dependent_containers = containers
+      .map(&:soft_dependent_containers)
+      .flatten
+      .uniq(&:name)
 
+    result +=  soft_dependent_containers.select do |container|
+      configuration.enabled_containers.include?(container.name) &&
+        !Indocker.launched?(container.name)
+    end
 
-    result.uniq
+    result
   end
 
   def compile_image(configuration, image, build_server)
