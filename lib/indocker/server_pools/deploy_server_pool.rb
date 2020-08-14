@@ -2,29 +2,24 @@ class Indocker::ServerPools::DeployServerPool
   def initialize(configuration:, logger:)
     @logger = logger
     @configuration = configuration
+    @connections = []
+  end
 
-    @connections = configuration.servers.map do |server|
-      Indocker::ServerPools::DeployServerConnection.new(
+  def create_connection!(server)
+    connection = @connections.detect do |connection|
+      connection.server.host == server.host &&
+      connection.server.port == server.port &&
+      connection.server.user == server.user
+    end
+    if connection.nil?
+      connection = Indocker::ServerPools::DeployServerConnection.new(
         logger: @logger,
-        configuration: configuration,
+        configuration: @configuration,
         server: server,
       )
+      connection.create_session!
+      @connections.push(connection)
     end
-  end
-
-  def create_sessions!
-    @connections.each(&:create_session!)
-  end
-
-  # NOTE: get is a bad name here, because we create a new connection.
-  # TODO: why we create a new connection here, instead of using existing one?
-  def get(server)
-    connection = Indocker::ServerPools::DeployServerConnection.new(
-      logger: @logger,
-      configuration: @configuration,
-      server: server,
-    )
-    connection.create_session!
     connection
   end
 

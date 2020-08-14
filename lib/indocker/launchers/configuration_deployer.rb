@@ -49,7 +49,6 @@ class Indocker::Launchers::ConfigurationDeployer
     
     @global_logger.info("Establishing ssh sessions to all servers...")
     build_server_pool.create_sessions!
-    deployer.create_sessions!
 
     build_servers = configuration
       .build_servers

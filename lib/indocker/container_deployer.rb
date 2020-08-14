@@ -14,10 +14,6 @@ class Indocker::ContainerDeployer
     @deployed_servers = {}
   end
 
-  def create_sessions!
-    @server_pool.create_sessions!
-  end
-
   def deploy(container, force_restart, skip_force_restart, progress)
     return if @deployed_containers[container]
 
@@ -37,7 +33,7 @@ class Indocker::ContainerDeployer
       end
 
       exec_proc.call do
-        deploy_server = @server_pool.get(server)
+        deploy_server = @server_pool.create_connection!(server)
         @logger.info("Deploying container: #{container.name.to_s.green} to #{server.user}@#{server.host}")
 
         result = deploy_server
