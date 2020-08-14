@@ -8,10 +8,16 @@ RSpec.describe Indocker::Launchers::ImagesCompiler do
   ) }
 
   it "builds images" do    
-    expect(Indocker::Docker).to receive(:build).once.and_return(
+    expect(Indocker::Docker).to receive(:build).with("dev/parent_image_image:latest", "").once.and_return(
       Indocker::Shell::ShellResult.new("", 0)
     )
-    expect(Indocker::Docker).to receive(:tag).once.and_return(
+    expect(Indocker::Docker).to receive(:build).with("dev/good_container_image:latest", "").once.and_return(
+      Indocker::Shell::ShellResult.new("", 0)
+    )
+    expect(Indocker::Docker).to receive(:tag).with("dev/parent_image_image:latest", "dev/parent_image_image:latest").once.and_return(
+      Indocker::Shell::ShellResult.new("", 0)
+    )
+    expect(Indocker::Docker).to receive(:tag).with("dev/good_container_image:latest", "dev/good_container_image:latest").once.and_return(
       Indocker::Shell::ShellResult.new("", 0)
     )
 

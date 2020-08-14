@@ -1,0 +1,2 @@
+domain: <%= global_build_args.domain %>
+hostname: <%= containers.good_container.hostname %>
