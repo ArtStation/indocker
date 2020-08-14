@@ -15,4 +15,6 @@ Indocker
     bad_container_start: {
       servers: [:external],
     }
+  ).artifacts(
+    indocker_readme: [:external],
   )

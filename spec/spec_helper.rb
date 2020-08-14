@@ -25,12 +25,11 @@ RSpec.configure do |config|
 end
 
 def setup_indocker(options = {})
+  Indocker.set_log_level(options[:debug] ? Logger::DEBUG : Logger::INFO)
   require_relative '../example/indocker/bin/utils/configurations'
 
   Indocker.set_configuration_name(options[:configuration] || "external")
   require_relative '../example/indocker/setup'
-
-  Indocker.set_log_level(options[:debug] ? Logger::DEBUG : Logger::INFO)
 end
 
 def build_deployment_policy(options = {}) 
