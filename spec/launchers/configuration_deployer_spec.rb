@@ -3,35 +3,29 @@ require 'spec_helper'
 RSpec.describe Indocker::Launchers::ConfigurationDeployer do
   before { setup_indocker(debug: true) }
 
-  describe "successful deployment" do
-    it "doesn't raise any error" do
-      expect{
-        Indocker.deploy(containers: [:good_container])
-      }.to_not raise_error
+  def build_remote_operation
+    thread = Thread.new() do
     end
-
-    it "shows a message about successful deploy" do
-      allow(Indocker.global_logger).to receive(:info).at_least(:once)
-      
-      Indocker.deploy(containers: [:good_container])
-
-      expect(Indocker.global_logger).to have_received(:info).at_least(:once).with(/Deployment finished/)
-    end
+    Indocker::Launchers::ConfigurationDeployer::RemoteOperation.new(thread, :external, :indocker_sync)
   end
 
-  describe "failed build" do
-    it "exits with an error" do
-      expect{
-        Indocker.deploy(containers: [:bad_container_build])
-      }.to raise_error(SystemExit)
-    end
-  end
+  subject { Indocker::Launchers::ConfigurationDeployer.new(
+    logger: Indocker.logger,
+    global_logger: Indocker.global_logger
+  ) }
 
-  describe "failed start for container with no daemonize" do
-    it "exits without error" do
-      expect{
-        Indocker.deploy(containers: [:bad_container_start])
-      }.to raise_error(SystemExit)
-    end
+  it "builds and deploys images" do
+    deployment_policy = build_deployment_policy({
+      containers: [:good_container]
+    })
+    
+    expect(subject).to receive(:compile_image).once.and_return([build_remote_operation])
+    expect(subject).to receive(:deploy_container).once.and_return([build_remote_operation])
+    expect(subject).to receive(:sync_indocker).once.and_return([build_remote_operation])
+    expect(subject).to receive(:sync_env_files).once.and_return([build_remote_operation])
+    expect(subject).to receive(:pull_repositories).once.and_return([build_remote_operation])
+    expect(subject).to receive(:sync_artifacts).once.and_return([build_remote_operation])
+
+    subject.run(configuration: Indocker.configuration, deployment_policy: deployment_policy)
   end
 end

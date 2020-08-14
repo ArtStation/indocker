@@ -19,9 +19,6 @@ class Indocker::Launchers::ConfigurationDeployer
 
   # Launch deployment & measure the benchmark
   def run(configuration:, deployment_policy:)
-    build_server_pool = nil
-    deployer = nil
-
     time = Benchmark.realtime do
       if deployment_policy.force_restart
         @logger.warn("WARNING. All containers will be forced to restart.")
@@ -336,8 +333,12 @@ class Indocker::Launchers::ConfigurationDeployer
     @progress.finish_building_container(container)
 
     if !skip_deploy
-      deployer.deploy(container, force_restart, skip_force_restart, @progress)
+      deploy_container(deployer, container, force_restart, skip_force_restart)
     end
+  end
+
+  def deploy_container(deployer, container, force_restart, skip_force_restart)
+    deployer.deploy(container, force_restart, skip_force_restart, @progress)
   end
 
   class RemoteOperation

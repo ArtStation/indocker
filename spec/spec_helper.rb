@@ -32,3 +32,20 @@ def setup_indocker(options = {})
 
   Indocker.set_log_level(options[:debug] ? Logger::DEBUG : Logger::INFO)
 end
+
+def build_deployment_policy(options = {}) 
+  Indocker::DeploymentPolicy.new(
+    deploy_containers:    options[:containers] || [],
+    deploy_tags:          options[:tags] || [],
+    servers:              options[:servers] || [],
+    skip_dependent:       options[:skip_dependent] || false,
+    skip_containers:      options[:skip_containers] || [],
+    skip_build:           options[:skip_build] || false,
+    skip_deploy:          options[:skip_deploy] || false,
+    skip_tags:            options[:skip_tags] || [],
+    force_restart:        options[:force_restart] || false,
+    skip_force_restart:   options[:skip_force_restart] || false,
+    auto_confirm:         options[:auto_confirm] || false,
+    require_confirmation: options[:require_confirmation] || false,
+  )
+end
