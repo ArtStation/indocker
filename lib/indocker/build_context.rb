@@ -42,7 +42,9 @@ class Indocker::BuildContext
       end
 
       Indocker::Docker.tag(image.local_registry_url, image.registry_url)
-      Indocker::Docker.tag(image.local_registry_url, image.local_registry_url)
+      if image.registry_url != image.local_registry_url
+        Indocker::Docker.tag(image.local_registry_url, image.local_registry_url)
+      end
 
       if !image.registry.is_local?
         Indocker::Docker.push(image.registry_url)

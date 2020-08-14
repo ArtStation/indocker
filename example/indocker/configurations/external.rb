@@ -14,6 +14,9 @@ Indocker
     },
     bad_container_start: {
       servers: [:external],
+    },
+    daemon_container: {
+      servers: [:external],
     }
   ).artifacts(
     indocker_readme: [:external],

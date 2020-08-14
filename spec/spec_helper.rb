@@ -48,3 +48,7 @@ def build_deployment_policy(options = {})
     require_confirmation: options[:require_confirmation] || false,
   )
 end
+
+def get_container(container_name)
+  Indocker.configuration.containers.detect { |c| c.name == container_name }
+end
