@@ -49,6 +49,7 @@ class Indocker::ContainerDeployer
         
         @logger.info("Container deployment to #{server.user}@#{server.host} finished: #{container.name.to_s.green}")
 
+        deploy_server.close_session
         progress.finish_deploying_container(container, server)
       end
     end

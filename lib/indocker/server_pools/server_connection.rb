@@ -24,6 +24,7 @@ class Indocker::ServerPools::ServerConnection
 
   def close_session
     @session.close if @session
+    @session = nil
   end
 
   def set_busy(flag)
