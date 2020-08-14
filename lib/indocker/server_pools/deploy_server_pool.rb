@@ -3,24 +3,13 @@ class Indocker::ServerPools::DeployServerPool
     @logger = logger
     @configuration = configuration
     @connections = []
+    @semaphore = Mutex.new
   end
 
   def create_connection!(server)
-    connection = @connections.detect do |connection|
-      connection.server.host == server.host &&
-      connection.server.port == server.port &&
-      connection.server.user == server.user
+    @semaphore.synchronize do
+      create_connection_unsafe!(server)
     end
-    if connection.nil?
-      connection = Indocker::ServerPools::DeployServerConnection.new(
-        logger: @logger,
-        configuration: @configuration,
-        server: server,
-      )
-      connection.create_session!
-      @connections.push(connection)
-    end
-    connection
   end
 
   def each(&proc)
@@ -30,4 +19,23 @@ class Indocker::ServerPools::DeployServerPool
   def close_sessions
     @connections.each(&:close_session)
   end
+
+  private
+    def create_connection_unsafe!(server)
+      connection = @connections.detect do |connection|
+        connection.server.host == server.host &&
+        connection.server.port == server.port &&
+        connection.server.user == server.user
+      end
+      if connection.nil?
+        connection = Indocker::ServerPools::DeployServerConnection.new(
+          logger: @logger,
+          configuration: @configuration,
+          server: server,
+        )
+        connection.create_session!
+        @connections.push(connection)
+      end
+      connection
+    end
 end
