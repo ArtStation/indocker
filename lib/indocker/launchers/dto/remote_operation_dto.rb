@@ -1,4 +1,4 @@
-class Indocker::Launchers::DTO::RemoteOperation
+class Indocker::Launchers::DTO::RemoteOperationDTO
   attr_reader :thread, :server, :operation, :message
 
   def initialize(thread, server, operation, message = nil)
