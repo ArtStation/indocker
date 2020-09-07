@@ -1,5 +1,5 @@
 class Indocker::Artifacts::Git
-  attr_reader :name, :remote_name, :remote_url, :branch, :files, source_path:, target_path:
+  attr_reader :name, :remote_name, :remote_url, :branch, :files, :source_path, :target_path
 
   def initialize(name:, remote_name:, remote_url:, branch:, files: [], source_path: nil, target_path: nil)
     @name        = name
