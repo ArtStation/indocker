@@ -1,6 +1,7 @@
 class Indocker::Artifacts::Services::Synchronizer
-  def initialize(logger:)
-    @logger = logger
+  def initialize(logger:, progress:)
+    @logger   = logger
+    @progress = progress
   end
 
   def call(clonner, artifact_servers)

@@ -406,7 +406,10 @@ class Indocker::Launchers::ConfigurationDeployer
   end
 
   def sync_artifacts(clonner, artifact_servers)
-    artifacts_synchronizer = Indocker::Artifacts::Services::Synchronizer.new(logger: @logger)
+    artifacts_synchronizer = Indocker::Artifacts::Services::Synchronizer.new(
+      logger:   @logger,
+      progress: @progress,
+    )
 
     remote_operations = artifacts_synchronizer.call(clonner, artifact_servers)
 
