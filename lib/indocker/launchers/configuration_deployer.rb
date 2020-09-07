@@ -342,17 +342,6 @@ class Indocker::Launchers::ConfigurationDeployer
     deployer.deploy(container, force_restart, skip_force_restart, @progress)
   end
 
-  class RemoteOperation
-    attr_reader :thread, :server, :operation, :message
-
-    def initialize(thread, server, operation, message = nil)
-      @thread = thread
-      @server = server
-      @operation = operation
-      @message = message
-    end
-  end
-
   def pull_repositories(clonner, servers, repositories)
     @logger.info("Clonning/pulling repositories")
 
@@ -398,7 +387,7 @@ class Indocker::Launchers::ConfigurationDeployer
           @progress.finish_syncing_repository(server, alias_name)
         end
 
-        RemoteOperation.new(thread, server, :repository_pull)
+        Indocker::Launchers::DTO::RemoteOperationDTO.new(thread, server, :repository_pull)
       end
     end
 
@@ -469,7 +458,7 @@ class Indocker::Launchers::ConfigurationDeployer
         @progress.finish_syncing_binaries(server)
       end
 
-      RemoteOperation.new(thread, server, :indocker_sync)
+      Indocker::Launchers::DTO::RemoteOperationDTO.new(thread, server, :indocker_sync)
     end
   end
 
@@ -510,7 +499,7 @@ class Indocker::Launchers::ConfigurationDeployer
           @progress.finish_syncing_env_file(server, alias_name)
         end
 
-        RemoteOperation.new(thread, server, :env_file_sync)
+        Indocker::Launchers::DTO::RemoteOperationDTO.new(thread, server, :env_file_sync)
       end
     end
 

@@ -50,7 +50,7 @@ class Indocker::Artifacts::Services::Synchronizer
           end
         end
 
-        RemoteOperation.new(thread, server, :artifact_sync)
+        Indocker::Launchers::DTO::RemoteOperationDTO.new(thread, server, :artifact_sync)
       end
     end
 

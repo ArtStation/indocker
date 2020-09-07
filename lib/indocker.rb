@@ -77,6 +77,10 @@ module Indocker
     autoload :ConfigurationDeployer, 'launchers/configuration_deployer'
     autoload :ImagesCompiler, 'launchers/images_compiler'
     autoload :ContainerRunner, 'launchers/container_runner'
+
+    module DTO
+      autoload :RemoteOperationDTO, 'launchers/dto/remote_operation_dto'
+    end
   end
 
   module ServerPools
