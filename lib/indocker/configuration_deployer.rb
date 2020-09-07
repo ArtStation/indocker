@@ -48,7 +48,7 @@ class Indocker::ConfigurationDeployer
     clonner = Indocker::Repositories::Clonner.new(configuration, @logger)
     build_context_pool = Indocker::BuildContextPool.new(configuration: configuration, logger: @logger, global_logger: @global_logger)
     deployer = Indocker::ContainerDeployer.new(configuration: configuration, logger: @logger)
-    
+
     @global_logger.info("Establishing ssh sessions to all servers...")
     build_context_pool.create_sessions!
     deployer.create_sessions!
@@ -93,14 +93,14 @@ class Indocker::ConfigurationDeployer
 
     containers.uniq.each do |container|
       recursively_deploy_container(
-        configuration, 
-        deployer, 
-        build_context_pool, 
-        container, 
-        containers, 
-        deployment_policy.skip_build, 
-        deployment_policy.skip_deploy, 
-        deployment_policy.force_restart, 
+        configuration,
+        deployer,
+        build_context_pool,
+        container,
+        containers,
+        deployment_policy.skip_build,
+        deployment_policy.skip_deploy,
+        deployment_policy.force_restart,
         deployment_policy.skip_force_restart
       )
     end
@@ -130,7 +130,7 @@ class Indocker::ConfigurationDeployer
 
   def find_containers_to_deploy(configuration, deployment_policy)
     load_enabled_containers(configuration)
-    
+
     containers = []
 
     deployment_policy.deploy_tags.each do |tag|
@@ -305,19 +305,19 @@ class Indocker::ConfigurationDeployer
     build_context.set_compiled(image)
   end
 
-  def recursively_deploy_container(configuration, deployer, build_context_pool, container, 
+  def recursively_deploy_container(configuration, deployer, build_context_pool, container,
     containers, skip_build, skip_deploy, force_restart, skip_force_restart)
 
     container.dependent_containers.each do |container|
       recursively_deploy_container(
-        configuration, 
-        deployer, 
-        build_context_pool, 
-        container, 
-        containers, 
-        skip_build, 
+        configuration,
+        deployer,
+        build_context_pool,
+        container,
+        containers,
+        skip_build,
         skip_deploy,
-        force_restart, 
+        force_restart,
         skip_force_restart
       )
     end
@@ -422,18 +422,36 @@ class Indocker::ConfigurationDeployer
               logger: @logger
             )
 
-            @logger.info("Pulling git artifact  #{artifact.name.to_s.green} for #{server.user}@#{server.host}")
-            result = clonner.clone(session, artifact.repository)
+            if artifact.is_a?(Indocker::Artifacts::Git)
+              @logger.info("Pulling git artifact  #{artifact.name.to_s.green} for #{server.user}@#{server.host}")
+              result = clonner.clone(session, artifact.repository)
 
-            if result.exit_code != 0
-              @logger.error("Artifact repository :#{artifact.repository.name} was not clonned")
-              @logger.error(result.stderr_data)
-              exit 1
+              if result.exit_code != 0
+                @logger.error("Artifact repository :#{artifact.repository.name} was not clonned")
+                @logger.error(result.stderr_data)
+                exit 1
+              end
+            end
+
+            if artifact.source_path.present? && artifact.target_path.present?
+              @logger.warn("Deprecated: artifact #source_path and #target_path methods are deprecated. Use #files instead!")
+
+              source_path = artifact.build_source_path(artifact_item.source_path)
+              target_path = artifact.build_target_path(artifact_item.target_path)
+
+              result = session.exec!("mkdir -p #{target_path}")
+              result = session.exec!("cp -r #{source_path} #{target_path}")
+
+              if !result.success?
+                @logger.error(result.stdout_data)
+                @logger.error(result.stderr_data)
+                exit 1
+              end
             end
 
             artifact.files.each do |artifact_item|
-              source_path = File.join(artifact.repository.clone_path, artifact_item.source_path)
-              target_path = artifact_item.target_path
+              source_path = artifact.build_source_path(artifact_item.source_path)
+              target_path = artifact.build_target_path(artifact_item.target_path)
 
               result = session.exec!("mkdir -p #{target_path}")
               result = session.exec!("cp -r #{source_path} #{target_path}")

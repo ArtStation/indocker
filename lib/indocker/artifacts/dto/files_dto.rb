@@ -1,4 +1,4 @@
-class Indocker::Artifacts::ArtifactFile
+class Indocker::Artifacts::DTO::FilesDTO
   attr_reader :source_path, :target_path
 
   def initialize(source_path:, target_path:)
