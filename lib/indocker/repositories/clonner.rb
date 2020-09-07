@@ -46,14 +46,28 @@ class Indocker::Repositories::Clonner
     end
 
     def build_git_remote_url_command(path:)
-      "mkdir -p #{path} && cd #{path} && git config --get remote.origin.url"
+      [
+        "mkdir -p #{path}",
+        "cd #{path}",
+        "git config --get remote.origin.url",
+      ].join(" && ")
     end
 
     def build_clone_command(target_path:, branch_name:, remote_url:)
-      "rm -rf #{target_path} && mkdir -p #{target_path} && git clone -b #{branch_name} --depth 1 #{remote_url} #{target_path}"
+      [
+        "rm -rf #{target_path}",
+        "mkdir -p #{target_path}",
+        "git clone -b #{branch_name} --depth 1 #{remote_url} #{target_path}",
+      ].join(" && ")
     end
 
     def build_force_pull_command(target_path:, branch_name:)
-      "cd #{target_path} && git add . && git reset HEAD --hard && git checkout #{branch_name} && git pull --force"
+      [
+        "cd #{target_path}",
+        "git add .",
+        "git reset HEAD --hard",
+        "git checkout #{branch_name}",
+        "git pull --force",
+      ].join(" && ")
     end
 end
