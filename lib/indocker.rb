@@ -55,6 +55,7 @@ module Indocker
   end
 
   module Artifacts
+    autoload :Base, 'artifacts/base'
     autoload :Git, 'artifacts/git'
     autoload :Remote, 'artifacts/remote'
 
@@ -63,7 +64,7 @@ module Indocker
     end
 
     module Services
-      autoload Synchronizer, 'artifacts/services/synchronizer'
+      autoload :Synchronizer, 'artifacts/services/synchronizer'
     end
   end
 

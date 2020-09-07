@@ -1,4 +1,4 @@
-class Indocker::Artifacts::Remote < Indocker::Artifacts::Base
+class Indocker::Artifacts::Base
 
   def build_source_path(*args)
     raise StandardError.new('not implemented')
@@ -28,5 +28,4 @@ class Indocker::Artifacts::Remote < Indocker::Artifacts::Base
 
       all_files
     end
-
 end
