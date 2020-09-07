@@ -36,7 +36,7 @@ class Indocker::Repositories::Clonner
     def repository_already_clonned?(session:, target_path:, remote_url:)
       target_remote_url = session.exec!(
         build_git_remote_url_command(
-          path: repository.clone_path
+          path: target_path
         )
       ).stdout_data.chomp
 
