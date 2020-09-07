@@ -2,40 +2,12 @@ require 'digest'
 require 'fileutils'
 
 class Indocker::DeployContext
-  attr_reader :server, :session
+  attr_reader :configuration, :logger
 
-  def initialize(logger:, configuration:, server:)
+  def initialize(logger:, configuration:)
     @logger = logger
     @configuration = configuration
-    @server = server
     @restart_policy = Indocker::Containers::RestartPolicy.new(configuration, logger)
-  end
-
-  def create_session!
-    return unless @server
-    
-    @session = Indocker::SshSession.new(
-      host: @server.host,
-      user: @server.user,
-      port: @server.port,
-      logger: @logger
-    )
-  end
-
-  def exec!(command)
-    @session.exec!(command)
-  end
-
-  def close_session
-    @session.close if @session
-  end
-
-  def set_busy(flag)
-    @busy = !!flag
-  end
-
-  def busy?
-    !!@busy
   end
 
   def deploy(container, force_restart)
@@ -46,14 +18,14 @@ class Indocker::DeployContext
 
     container.networks.each do |network|
       Indocker::Docker.create_network(
-        Indocker::NetworkHelper.name(@configuration.name, network)
+        Indocker::Networks::NetworkHelper.name(@configuration.name, network)
       )
     end
 
     container.volumes.each do |volume|
       if volume.is_a?(Indocker::Volumes::External)
         Indocker::Docker.create_volume(
-          Indocker::VolumeHelper.name(@configuration.name, volume)
+          Indocker::Volumes::VolumeHelper.name(@configuration.name, volume)
         )
       end
     end

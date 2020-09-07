@@ -38,10 +38,26 @@ class Indocker::SshSession
   end
 
   def exec!(command)
-    if !@ssh
+    if local?
+      exec_locally!(command)
+    else
+      exec_remotely!(command)
+    end
+  end
+
+  def close
+    if @ssh
+      @ssh.close
+    end
+  end
+
+  private
+    def exec_locally!(command)
       res = Indocker::Shell.command_with_result(command, @logger, skip_logging: false)
       ExecResult.new(res.stdout, '', res.exit_status, nil)
-    else
+    end
+
+    def exec_remotely!(command)
       if Indocker.export_command
         command = "#{Indocker.export_command} && #{command}"
       end
@@ -82,11 +98,4 @@ class Indocker::SshSession
 
       ExecResult.new(stdout_data, stderr_data, exit_code, exit_signal)
     end
-  end
-
-  def close
-    if @ssh
-      @ssh.close
-    end
-  end
 end
