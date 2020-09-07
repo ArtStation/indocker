@@ -59,7 +59,11 @@ module Indocker
     autoload :Remote, 'artifacts/remote'
 
     module DTO
-      autoload :FilesDTO, 'artifacts/dto/files_dto'
+      autoload :FileDTO, 'artifacts/dto/file_dto'
+    end
+
+    module Services
+      autoload Synchronizer, 'artifacts/services/synchronizer'
     end
   end
 

@@ -406,71 +406,9 @@ class Indocker::Launchers::ConfigurationDeployer
   end
 
   def sync_artifacts(clonner, artifact_servers)
-    @logger.info("Syncing git artifacts")
+    artifacts_synchronizer = Indocker::Artifacts::Services::Synchronizer.new(logger: @logger)
 
-    remote_operations = []
-
-    artifact_servers.each do |artifact, servers|
-      remote_operations += servers.map do |server|
-        @progress.start_syncing_artifact(server, artifact)
-
-        thread = Thread.new do
-          server.synchronize do
-            session = Indocker::SshSession.new(
-              host: server.host,
-              user: server.user,
-              port: server.port,
-              logger: @logger
-            )
-
-            if artifact.is_a?(Indocker::Artifacts::Git)
-              @logger.info("Pulling git artifact  #{artifact.name.to_s.green} for #{server.user}@#{server.host}")
-              result = clonner.clone(session, artifact.repository)
-
-              if result.exit_code != 0
-                @logger.error("Artifact repository :#{artifact.repository.name} was not clonned")
-                @logger.error(result.stderr_data)
-                exit 1
-              end
-            end
-
-            if artifact.source_path.present? && artifact.target_path.present?
-              @logger.warn("Deprecated: artifact #source_path and #target_path methods are deprecated. Use #files instead!")
-
-              source_path = artifact.build_source_path(artifact_item.source_path)
-              target_path = artifact.build_target_path(artifact_item.target_path)
-
-              result = session.exec!("mkdir -p #{target_path}")
-              result = session.exec!("cp -r #{source_path} #{target_path}")
-
-              if !result.success?
-                @logger.error(result.stdout_data)
-                @logger.error(result.stderr_data)
-                exit 1
-              end
-            end
-
-            artifact.files.each do |artifact_item|
-              source_path = artifact.build_source_path(artifact_item.source_path)
-              target_path = artifact.build_target_path(artifact_item.target_path)
-
-              result = session.exec!("mkdir -p #{target_path}")
-              result = session.exec!("cp -r #{source_path} #{target_path}")
-
-              if !result.success?
-                @logger.error(result.stdout_data)
-                @logger.error(result.stderr_data)
-                exit 1
-              end
-            end
-
-            @progress.finish_syncing_artifact(server, artifact)
-          end
-        end
-
-        RemoteOperation.new(thread, server, :artifact_sync)
-      end
-    end
+    remote_operations = artifacts_synchronizer.call(clonner, artifact_servers)
 
     remote_operations
   end
