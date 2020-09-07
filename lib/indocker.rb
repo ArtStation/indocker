@@ -16,10 +16,6 @@ module Indocker
   module Configurations
     autoload :Configuration, 'configurations/configuration'
     autoload :ConfigurationBuilder, 'configurations/configuration_builder'
-
-    module Formatters
-      autoload :Stdout, 'configurations/formatters/stdout'
-    end
   end
 
   module Registries
@@ -50,6 +46,7 @@ module Indocker
     autoload :Local, 'volumes/local'
     autoload :External, 'volumes/external'
     autoload :Repository, 'volumes/repository'
+    autoload :VolumeHelper, 'volumes/volume_helper'
   end
 
   module EnvFiles
@@ -66,30 +63,41 @@ module Indocker
     end
   end
 
+  module Networks
+    autoload :Network, 'networks/network'
+    autoload :NetworkHelper, 'networks/network_helper'
+  end
+
+  module Launchers
+    autoload :ConfigurationDeployer, 'launchers/configuration_deployer'
+    autoload :ImagesCompiler, 'launchers/images_compiler'
+    autoload :ContainerRunner, 'launchers/container_runner'
+  end
+
+  module ServerPools
+    autoload :ServerConnection, 'server_pools/server_connection'
+    autoload :DeployServerPool, 'server_pools/deploy_server_pool'
+    autoload :DeployServerConnection, 'server_pools/deploy_server_connection'
+    autoload :BuildServerPool, 'server_pools/build_server_pool'
+    autoload :BuildServerConnection, 'server_pools/build_server_connection'
+  end
+
   autoload :HashMerger, 'hash_merger'
   autoload :BuildServer, 'build_server'
   autoload :Server, 'server'
-  autoload :ConfigurationDeployer, 'configuration_deployer'
   autoload :SshSession, 'ssh_session'
-  autoload :BuildContextPool, 'build_context_pool'
   autoload :BuildContext, 'build_context'
   autoload :BuildContextHelper, 'build_context_helper'
   autoload :Shell, 'shell'
   autoload :Docker, 'docker'
   autoload :ContextArgs, 'context_args'
-  autoload :Network, 'network'
   autoload :ContainerDeployer, 'container_deployer'
-  autoload :ServerPool, 'server_pool'
   autoload :DeployContext, 'deploy_context'
   autoload :ContainerHelper, 'container_helper'
   autoload :DockerRunArgs, 'docker_run_args'
-  autoload :VolumeHelper, 'volume_helper'
-  autoload :NetworkHelper, 'network_helper'
   autoload :Rsync, 'rsync'
   autoload :EnvFileHelper, 'env_file_helper'
   autoload :IndockerHelper, 'indocker_helper'
-  autoload :ImagesCompiler, 'images_compiler'
-  autoload :ContainerRunner, 'container_runner'
   autoload :SshResultLogger, 'ssh_result_logger'
   autoload :DeploymentProgress, 'deployment_progress'
   autoload :DeploymentChecker, 'deployment_checker'
@@ -177,7 +185,7 @@ module Indocker
         raise ArgumentError.new("network :#{name} was already defined")
       end
 
-      networks.push(Indocker::Network.new(name))
+      networks.push(Indocker::Networks::Network.new(name))
     end
 
     def container_files
@@ -345,7 +353,7 @@ module Indocker
         require_confirmation: require_confirmation,
       )
 
-      Indocker::ConfigurationDeployer
+      Indocker::Launchers::ConfigurationDeployer
         .new(logger: Indocker.logger, global_logger: Indocker.global_logger)
         .run(
           configuration:     configuration,
@@ -362,7 +370,7 @@ module Indocker
         )
     end
 
-    def launched?(contaner_name, servers: [])
+    def launched?(contaner_name, servers: nil)
       silent_logger = Logger.new(File.open(File::NULL, "w"))
       Indocker::DeploymentChecker
         .new(silent_logger, silent_logger)
@@ -374,7 +382,7 @@ module Indocker
     end
 
     def compile(images:, skip_dependent:)
-      Indocker::ImagesCompiler
+      Indocker::Launchers::ImagesCompiler
         .new(Indocker.logger)
         .compile(
           configuration: configuration,
@@ -384,7 +392,7 @@ module Indocker
     end
 
     def run(container_name, force_restart)
-      Indocker::ContainerRunner
+      Indocker::Launchers::ContainerRunner
         .new(Indocker.logger)
         .run(
           configuration: configuration,

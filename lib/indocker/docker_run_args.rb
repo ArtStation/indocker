@@ -159,7 +159,7 @@ class Indocker::DockerRunArgs
         if volume.is_a?(Indocker::Volumes::Local)
           args.push("-v #{volume.local_path}:#{volume.path}")
         elsif volume.is_a?(Indocker::Volumes::External)
-          name = Indocker::VolumeHelper.name(configuration.name, volume)
+          name = Indocker::Volumes::VolumeHelper.name(configuration.name, volume)
           args.push("-v #{name}:#{volume.path}")
         elsif volume.is_a?(Indocker::Volumes::Repository)
           repository = configuration.repositories.fetch(volume.repository_name) do
@@ -173,7 +173,7 @@ class Indocker::DockerRunArgs
       end
 
       container.networks.each do |network|
-        name = Indocker::NetworkHelper.name(configuration.name, network)
+        name = Indocker::Networks::NetworkHelper.name(configuration.name, network)
         args.push("--network #{name}")
       end
 

@@ -3,3 +3,4 @@ Indocker
   .tags('ruby', 'console=true')
   .image(:ruby)
   .networks(:app_net)
+  .daemonize(false)

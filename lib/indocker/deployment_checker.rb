@@ -109,13 +109,15 @@ class Indocker::DeploymentChecker
     { missing_containers: total_missing_containers, invalid_containers: total_invalid_containers }
   end
 
-  def launched?(container_name, configuration:, servers:)
+  def launched?(container_name, configuration:, servers: nil)
     container = Indocker.containers.detect { |c| c.name == container_name.to_sym }
     hostnames = (container.get_start_option(:scale) || 1).times.map do |number|
       Indocker::ContainerHelper.hostname(configuration.name, container, number)
     end
 
-    result = run(configuration: configuration, servers: servers, only_containers: [container.name])
+    servers ||= container.servers.map(&:name)
+
+    result = run(configuration: configuration, servers: container.servers.map(&:name), only_containers: [container.name])
     result[:missing_containers].empty?
   end
 end
