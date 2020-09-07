@@ -21,12 +21,12 @@ class Indocker::Repositories::Clonner
       build_force_pull_command(
         target_path: repository.clone_path,
         branch_name: repository.branch,
-        remote_url:  repository.remote_url,
       )
     else
       build_clone_command(
         target_path: repository.clone_path,
         branch_name: repository.branch,
+        remote_url:  repository.remote_url,
       )
     end
 
