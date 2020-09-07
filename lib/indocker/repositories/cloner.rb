@@ -1,21 +1,21 @@
 require 'net/ssh'
 
-class Indocker::Repositories::Clonner
+class Indocker::Repositories::Cloner
   def initialize(configuration, logger)
     @configuration = configuration
     @logger = logger
   end
 
   def clone(session, repository)
-    raise ArgumenError.new("only git repositories should be clonned") if !repository.is_git?
+    raise ArgumenError.new("only git repositories should be cloned") if !repository.is_git?
 
-    already_clonned = repository_already_clonned?(
+    already_cloned = repository_already_cloned?(
       session:     session,
       target_path: repository.clone_path,
       remote_url:  repository.remote_url,
     )
 
-    git_command = if already_clonned
+    git_command = if already_cloned
       build_force_pull_command(
         target_path: repository.clone_path,
         branch_name: repository.branch,
@@ -33,7 +33,7 @@ class Indocker::Repositories::Clonner
 
   private
 
-    def repository_already_clonned?(session:, target_path:, remote_url:)
+    def repository_already_cloned?(session:, target_path:, remote_url:)
       target_remote_url = session.exec!(
         build_git_remote_url_command(
           path: target_path

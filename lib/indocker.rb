@@ -10,7 +10,7 @@ module Indocker
     autoload :Git, 'repositories/git'
     autoload :Local, 'repositories/local'
     autoload :NoSync, 'repositories/no_sync'
-    autoload :Clonner, 'repositories/clonner'
+    autoload :Cloner, 'repositories/cloner'
   end
 
   module Configurations
@@ -328,9 +328,9 @@ module Indocker
       builder
     end
 
-    def deploy(containers: [], skip_tags: [], tags: [], skip_dependent: false, 
+    def deploy(containers: [], skip_tags: [], tags: [], skip_dependent: false,
       skip_containers: [], servers: [], skip_build: false, skip_deploy: false,
-      force_restart: false, skip_force_restart: [], auto_confirm: false, 
+      force_restart: false, skip_force_restart: [], auto_confirm: false,
       require_confirmation: false)
 
       deployment_policy = Indocker::DeploymentPolicy.new(

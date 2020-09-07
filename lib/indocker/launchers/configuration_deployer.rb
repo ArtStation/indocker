@@ -43,10 +43,10 @@ class Indocker::Launchers::ConfigurationDeployer
   def run!(configuration:, deployment_policy:)
     containers = find_containers_to_deploy(configuration, deployment_policy)
 
-    clonner = Indocker::Repositories::Clonner.new(configuration, @logger)
+    cloner = Indocker::Repositories::Cloner.new(configuration, @logger)
     build_server_pool = Indocker::ServerPools::BuildServerPool.new(configuration: configuration, logger: @logger)
     deployer = Indocker::ContainerDeployer.new(configuration: configuration, logger: @logger)
-    
+
     @global_logger.info("Establishing ssh sessions to all servers...")
     build_server_pool.create_sessions!
 
@@ -80,24 +80,24 @@ class Indocker::Launchers::ConfigurationDeployer
     remote_operations = sync_env_files(deploy_servers, configuration.env_files)
     wait_remote_operations(remote_operations)
 
-    remote_operations = pull_repositories(clonner, build_servers, configuration.repositories)
+    remote_operations = pull_repositories(cloner, build_servers, configuration.repositories)
     wait_remote_operations(remote_operations)
 
-    remote_operations = sync_artifacts(clonner, configuration.artifact_servers)
+    remote_operations = sync_artifacts(cloner, configuration.artifact_servers)
     wait_remote_operations(remote_operations)
 
     update_crontab_redeploy_rules(configuration, build_servers.first)
 
     containers.uniq.each do |container|
       recursively_deploy_container(
-        configuration, 
-        deployer, 
-        build_server_pool, 
-        container, 
-        containers, 
-        deployment_policy.skip_build, 
-        deployment_policy.skip_deploy, 
-        deployment_policy.force_restart, 
+        configuration,
+        deployer,
+        build_server_pool,
+        container,
+        containers,
+        deployment_policy.skip_build,
+        deployment_policy.skip_deploy,
+        deployment_policy.force_restart,
         deployment_policy.skip_force_restart
       )
     end
@@ -127,7 +127,7 @@ class Indocker::Launchers::ConfigurationDeployer
 
   def find_containers_to_deploy(configuration, deployment_policy)
     load_enabled_containers(configuration)
-    
+
     containers = []
 
     deployment_policy.deploy_tags.each do |tag|
@@ -302,19 +302,19 @@ class Indocker::Launchers::ConfigurationDeployer
     @compiled_images[image] = true
   end
 
-  def recursively_deploy_container(configuration, deployer, build_server_pool, container, 
+  def recursively_deploy_container(configuration, deployer, build_server_pool, container,
     containers, skip_build, skip_deploy, force_restart, skip_force_restart)
 
     container.dependent_containers.each do |container|
       recursively_deploy_container(
-        configuration, 
-        deployer, 
-        build_server_pool, 
-        container, 
-        containers, 
-        skip_build, 
+        configuration,
+        deployer,
+        build_server_pool,
+        container,
+        containers,
+        skip_build,
         skip_deploy,
-        force_restart, 
+        force_restart,
         skip_force_restart
       )
     end
@@ -353,7 +353,7 @@ class Indocker::Launchers::ConfigurationDeployer
     end
   end
 
-  def pull_repositories(clonner, servers, repositories)
+  def pull_repositories(cloner, servers, repositories)
     @logger.info("Clonning/pulling repositories")
 
     remote_operations = []
@@ -382,10 +382,10 @@ class Indocker::Launchers::ConfigurationDeployer
             )
           elsif repository.is_git?
             @logger.info("Pulling repository #{alias_name.to_s.green} for #{server.user}@#{server.host}")
-            result = clonner.clone(session, repository)
+            result = cloner.clone(session, repository)
 
             if result.exit_code != 0
-              @logger.error("Repository :#{repository.name} was not clonned")
+              @logger.error("Repository :#{repository.name} was not cloned")
               @logger.error(result.stderr_data)
               exit 1
             end
@@ -405,7 +405,7 @@ class Indocker::Launchers::ConfigurationDeployer
     remote_operations
   end
 
-  def sync_artifacts(clonner, artifact_servers)
+  def sync_artifacts(cloner, artifact_servers)
     @logger.info("Syncing git artifacts")
 
     remote_operations = []
@@ -424,10 +424,10 @@ class Indocker::Launchers::ConfigurationDeployer
             )
 
             @logger.info("Pulling git artifact  #{artifact.name.to_s.green} for #{server.user}@#{server.host}")
-            result = clonner.clone(session, artifact.repository)
+            result = cloner.clone(session, artifact.repository)
 
             if result.exit_code != 0
-              @logger.error("Artifact repository :#{artifact.repository.name} was not clonned")
+              @logger.error("Artifact repository :#{artifact.repository.name} was not cloned")
               @logger.error(result.stderr_data)
               exit 1
             end
