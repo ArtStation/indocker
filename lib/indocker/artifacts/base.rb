@@ -28,4 +28,8 @@ class Indocker::Artifacts::Base
 
       all_files
     end
+
+    def build_source_path(path)
+      path
+    end
 end

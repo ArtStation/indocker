@@ -33,7 +33,9 @@ class Indocker::Artifacts::Services::Synchronizer
             end
 
             artifact.files.each do |artifact_item|
-              result = session.exec!("mkdir -p #{target_path}")
+              source_path = artifact.build_source_path(artifact_item.source_path)
+
+              result = session.exec!("mkdir -p #{artifact_item.target_path}")
               result = session.exec!("cp -r #{artifact_item.source_path} #{artifact_item.target_path}")
 
               if !result.success?

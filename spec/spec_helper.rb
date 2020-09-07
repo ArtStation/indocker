@@ -32,7 +32,7 @@ def setup_indocker(options = {})
   require_relative '../example/indocker/setup'
 end
 
-def build_deployment_policy(options = {}) 
+def build_deployment_policy(options = {})
   Indocker::DeploymentPolicy.new(
     deploy_containers:    options[:containers] || [],
     deploy_tags:          options[:tags] || [],
