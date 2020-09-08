@@ -55,7 +55,17 @@ module Indocker
   end
 
   module Artifacts
+    autoload :Base, 'artifacts/base'
     autoload :Git, 'artifacts/git'
+    autoload :Remote, 'artifacts/remote'
+
+    module DTO
+      autoload :FileDTO, 'artifacts/dto/file_dto'
+    end
+
+    module Services
+      autoload :Synchronizer, 'artifacts/services/synchronizer'
+    end
   end
 
   module Networks
@@ -67,6 +77,10 @@ module Indocker
     autoload :ConfigurationDeployer, 'launchers/configuration_deployer'
     autoload :ImagesCompiler, 'launchers/images_compiler'
     autoload :ContainerRunner, 'launchers/container_runner'
+
+    module DTO
+      autoload :RemoteOperationDTO, 'launchers/dto/remote_operation_dto'
+    end
   end
 
   module ServerPools
@@ -328,9 +342,9 @@ module Indocker
       builder
     end
 
-    def deploy(containers: [], skip_tags: [], tags: [], skip_dependent: false, 
+    def deploy(containers: [], skip_tags: [], tags: [], skip_dependent: false,
       skip_containers: [], servers: [], skip_build: false, skip_deploy: false,
-      force_restart: false, skip_force_restart: [], auto_confirm: false, 
+      force_restart: false, skip_force_restart: [], auto_confirm: false,
       require_confirmation: false)
 
       deployment_policy = Indocker::DeploymentPolicy.new(

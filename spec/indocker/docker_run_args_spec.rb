@@ -7,7 +7,7 @@ RSpec.describe Indocker::DockerRunArgs do
 
   it "returns correct args" do
     container = get_container(:good_container)
-     
+
     result = subject.get(container, Indocker.configuration, 1)
 
     expect(result).to include("--hostname external_good_container")

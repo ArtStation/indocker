@@ -4,7 +4,23 @@ Indocker.add_artifact(
     remote_name: 'origin',
     remote_url:  'https://github.com/ArtStation/indocker.git',
     branch:      :master,
-    source_path: './README.md',
-    target_path: File.join(Indocker.deploy_dir, 'README.md'),
+    files: [
+      Indocker::Artifacts::DTO::FileDTO.new(
+        source_path: './README.md',
+        target_path: Indocker.deploy_dir,
+      )
+    ]
+  )
+)
+
+Indocker.add_artifact(
+  Indocker::Artifacts::Remote.new(
+    name: :hosts_file,
+    files: [
+      Indocker::Artifacts::DTO::FileDTO.new(
+        source_path: '/etc/hosts',
+        target_path: Indocker.deploy_dir,
+      )
+    ]
   )
 )

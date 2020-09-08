@@ -1,13 +1,17 @@
-class Indocker::Artifacts::Git
-  attr_reader :name, :remote_name, :remote_url, :branch, :source_path, :target_path
+class Indocker::Artifacts::Git < Indocker::Artifacts::Base
+  attr_reader :name, :remote_name, :remote_url, :branch, :files
 
-  def initialize(name:, remote_name:, remote_url:, branch:, source_path:, target_path:)
+  def initialize(name:, remote_name:, remote_url:, branch:, files: [], source_path: nil, target_path: nil)
     @name        = name
     @remote_name = remote_name
     @remote_url  = remote_url
     @branch      = branch
-    @source_path = source_path
-    @target_path = target_path
+
+    @files = build_all_files(
+      files:       files,
+      source_path: source_path,
+      target_path: target_path,
+    )
   end
 
   def repository
@@ -21,5 +25,13 @@ class Indocker::Artifacts::Git
 
   def project_name(url)
     url.split('/').last.gsub('.git', '')
+  end
+
+  def is_git?
+    true
+  end
+
+  def build_source_path(path)
+    File.join(self.repository.clone_path, path)
   end
 end

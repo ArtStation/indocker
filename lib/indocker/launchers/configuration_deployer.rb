@@ -46,7 +46,7 @@ class Indocker::Launchers::ConfigurationDeployer
     clonner = Indocker::Repositories::Clonner.new(configuration, @logger)
     build_server_pool = Indocker::ServerPools::BuildServerPool.new(configuration: configuration, logger: @logger)
     deployer = Indocker::ContainerDeployer.new(configuration: configuration, logger: @logger)
-    
+
     @global_logger.info("Establishing ssh sessions to all servers...")
     build_server_pool.create_sessions!
 
@@ -90,14 +90,14 @@ class Indocker::Launchers::ConfigurationDeployer
 
     containers.uniq.each do |container|
       recursively_deploy_container(
-        configuration, 
-        deployer, 
-        build_server_pool, 
-        container, 
-        containers, 
-        deployment_policy.skip_build, 
-        deployment_policy.skip_deploy, 
-        deployment_policy.force_restart, 
+        configuration,
+        deployer,
+        build_server_pool,
+        container,
+        containers,
+        deployment_policy.skip_build,
+        deployment_policy.skip_deploy,
+        deployment_policy.force_restart,
         deployment_policy.skip_force_restart
       )
     end
@@ -127,7 +127,7 @@ class Indocker::Launchers::ConfigurationDeployer
 
   def find_containers_to_deploy(configuration, deployment_policy)
     load_enabled_containers(configuration)
-    
+
     containers = []
 
     deployment_policy.deploy_tags.each do |tag|
@@ -302,19 +302,19 @@ class Indocker::Launchers::ConfigurationDeployer
     @compiled_images[image] = true
   end
 
-  def recursively_deploy_container(configuration, deployer, build_server_pool, container, 
+  def recursively_deploy_container(configuration, deployer, build_server_pool, container,
     containers, skip_build, skip_deploy, force_restart, skip_force_restart)
 
     container.dependent_containers.each do |container|
       recursively_deploy_container(
-        configuration, 
-        deployer, 
-        build_server_pool, 
-        container, 
-        containers, 
-        skip_build, 
+        configuration,
+        deployer,
+        build_server_pool,
+        container,
+        containers,
+        skip_build,
         skip_deploy,
-        force_restart, 
+        force_restart,
         skip_force_restart
       )
     end
@@ -340,17 +340,6 @@ class Indocker::Launchers::ConfigurationDeployer
 
   def deploy_container(deployer, container, force_restart, skip_force_restart)
     deployer.deploy(container, force_restart, skip_force_restart, @progress)
-  end
-
-  class RemoteOperation
-    attr_reader :thread, :server, :operation, :message
-
-    def initialize(thread, server, operation, message = nil)
-      @thread = thread
-      @server = server
-      @operation = operation
-      @message = message
-    end
   end
 
   def pull_repositories(clonner, servers, repositories)
@@ -398,7 +387,7 @@ class Indocker::Launchers::ConfigurationDeployer
           @progress.finish_syncing_repository(server, alias_name)
         end
 
-        RemoteOperation.new(thread, server, :repository_pull)
+        Indocker::Launchers::DTO::RemoteOperationDTO.new(thread, server, :repository_pull)
       end
     end
 
@@ -406,49 +395,12 @@ class Indocker::Launchers::ConfigurationDeployer
   end
 
   def sync_artifacts(clonner, artifact_servers)
-    @logger.info("Syncing git artifacts")
+    artifacts_synchronizer = Indocker::Artifacts::Services::Synchronizer.new(
+      logger:   @logger,
+      progress: @progress,
+    )
 
-    remote_operations = []
-
-    artifact_servers.each do |artifact, servers|
-      remote_operations += servers.map do |server|
-        @progress.start_syncing_artifact(server, artifact)
-
-        thread = Thread.new do
-          server.synchronize do
-            session = Indocker::SshSession.new(
-              host: server.host,
-              user: server.user,
-              port: server.port,
-              logger: @logger
-            )
-
-            @logger.info("Pulling git artifact  #{artifact.name.to_s.green} for #{server.user}@#{server.host}")
-            result = clonner.clone(session, artifact.repository)
-
-            if result.exit_code != 0
-              @logger.error("Artifact repository :#{artifact.repository.name} was not clonned")
-              @logger.error(result.stderr_data)
-              exit 1
-            end
-
-            source_path = File.join(artifact.repository.clone_path, artifact.source_path)
-            result = session.exec!("mkdir -p #{artifact.target_path}")
-            result = session.exec!("cp -r #{source_path} #{artifact.target_path}")
-
-            if !result.success?
-              @logger.error(result.stdout_data)
-              @logger.error(result.stderr_data)
-              exit 1
-            end
-
-            @progress.finish_syncing_artifact(server, artifact)
-          end
-        end
-
-        RemoteOperation.new(thread, server, :artifact_sync)
-      end
-    end
+    remote_operations = artifacts_synchronizer.call(clonner, artifact_servers)
 
     remote_operations
   end
@@ -506,7 +458,7 @@ class Indocker::Launchers::ConfigurationDeployer
         @progress.finish_syncing_binaries(server)
       end
 
-      RemoteOperation.new(thread, server, :indocker_sync)
+      Indocker::Launchers::DTO::RemoteOperationDTO.new(thread, server, :indocker_sync)
     end
   end
 
@@ -547,7 +499,7 @@ class Indocker::Launchers::ConfigurationDeployer
           @progress.finish_syncing_env_file(server, alias_name)
         end
 
-        RemoteOperation.new(thread, server, :env_file_sync)
+        Indocker::Launchers::DTO::RemoteOperationDTO.new(thread, server, :env_file_sync)
       end
     end
 
