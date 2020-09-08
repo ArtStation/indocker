@@ -37,6 +37,26 @@ class Indocker::BuildContextHelper
     end
   end
 
+  def volume_path(name)
+    volume = volume(name)
+
+    if volume.is_a?(Indocker::Volumes::Local)
+      volume.local_path
+    elsif volume.is_a?(Indocker::Volumes::External)
+      volume.path
+    elsif volume.is_a?(Indocker::Volumes::Repository)
+      repository_path(volume.repository_name)
+    else
+      raise NotImplementedError.new("unsupported volume type: #{volume.inspect}")
+    end
+  end
+
+  def volume(name)
+    @configuration.volumes.fetch(name) do
+      raise ArgumentError.new("repository :#{name} is not defined in configuration")
+    end
+  end
+
   def global_build_args
     @global_build_args = Indocker::ContextArgs.new(nil, @configuration.global_build_args, nil)
   end
