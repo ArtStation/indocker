@@ -1,9 +1,4 @@
 class Indocker::Artifacts::Base
-
-  def build_source_path(*args)
-    raise StandardError.new('not implemented')
-  end
-
   def build_source_path(*args)
     raise StandardError.new('not implemented')
   end
@@ -27,9 +22,5 @@ class Indocker::Artifacts::Base
       end
 
       all_files
-    end
-
-    def build_source_path(path)
-      path
     end
 end

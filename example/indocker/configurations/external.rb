@@ -24,4 +24,5 @@ Indocker
     }
   ).artifacts(
     indocker_readme: [:external],
+    hosts_file: [:external],
   )
