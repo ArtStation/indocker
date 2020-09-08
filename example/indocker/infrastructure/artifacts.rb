@@ -15,10 +15,10 @@ Indocker.add_artifact(
 
 Indocker.add_artifact(
   Indocker::Artifacts::Remote.new(
-    name:        :indocker_readme,
+    name: :hosts_file,
     files: [
       Indocker::Artifacts::DTO::FileDTO.new(
-        source_path: '/home/indocker/.bash_profile',
+        source_path: '/etc/hosts',
         target_path: Indocker.deploy_dir,
       )
     ]
