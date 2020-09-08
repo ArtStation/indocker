@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    indocker (0.1.16)
+    indocker (0.1.17)
       net-ssh
 
 GEM
