@@ -4,7 +4,7 @@ class Indocker::BuildContextHelper
   def initialize(configuration, build_server)
     @configuration = configuration
     @build_server = build_server
-    @clonned_repositories = Hash.new(false)
+    @cloned_repositories = Hash.new(false)
   end
 
   def image_url(image_sym)

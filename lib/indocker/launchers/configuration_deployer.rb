@@ -43,7 +43,7 @@ class Indocker::Launchers::ConfigurationDeployer
   def run!(configuration:, deployment_policy:)
     containers = find_containers_to_deploy(configuration, deployment_policy)
 
-    clonner = Indocker::Repositories::Clonner.new(configuration, @logger)
+    cloner = Indocker::Repositories::Cloner.new(configuration, @logger)
     build_server_pool = Indocker::ServerPools::BuildServerPool.new(configuration: configuration, logger: @logger)
     deployer = Indocker::ContainerDeployer.new(configuration: configuration, logger: @logger)
 
@@ -80,10 +80,10 @@ class Indocker::Launchers::ConfigurationDeployer
     remote_operations = sync_env_files(deploy_servers, configuration.env_files)
     wait_remote_operations(remote_operations)
 
-    remote_operations = pull_repositories(clonner, build_servers, configuration.repositories)
+    remote_operations = pull_repositories(cloner, build_servers, configuration.repositories)
     wait_remote_operations(remote_operations)
 
-    remote_operations = sync_artifacts(clonner, configuration.artifact_servers)
+    remote_operations = sync_artifacts(cloner, configuration.artifact_servers)
     wait_remote_operations(remote_operations)
 
     update_crontab_redeploy_rules(configuration, build_servers.first)
@@ -342,7 +342,7 @@ class Indocker::Launchers::ConfigurationDeployer
     deployer.deploy(container, force_restart, skip_force_restart, @progress)
   end
 
-  def pull_repositories(clonner, servers, repositories)
+  def pull_repositories(cloner, servers, repositories)
     @logger.info("Clonning/pulling repositories")
 
     remote_operations = []
@@ -371,10 +371,10 @@ class Indocker::Launchers::ConfigurationDeployer
             )
           elsif repository.is_git?
             @logger.info("Pulling repository #{alias_name.to_s.green} for #{server.user}@#{server.host}")
-            result = clonner.clone(session, repository)
+            result = cloner.clone(session, repository)
 
             if result.exit_code != 0
-              @logger.error("Repository :#{repository.name} was not clonned")
+              @logger.error("Repository :#{repository.name} was not cloned")
               @logger.error(result.stderr_data)
               exit 1
             end
@@ -394,13 +394,13 @@ class Indocker::Launchers::ConfigurationDeployer
     remote_operations
   end
 
-  def sync_artifacts(clonner, artifact_servers)
+  def sync_artifacts(cloner, artifact_servers)
     artifacts_synchronizer = Indocker::Artifacts::Services::Synchronizer.new(
       logger:   @logger,
       progress: @progress,
     )
 
-    remote_operations = artifacts_synchronizer.call(clonner, artifact_servers)
+    remote_operations = artifacts_synchronizer.call(cloner, artifact_servers)
 
     remote_operations
   end

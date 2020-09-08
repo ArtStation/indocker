@@ -10,7 +10,7 @@ module Indocker
     autoload :Git, 'repositories/git'
     autoload :Local, 'repositories/local'
     autoload :NoSync, 'repositories/no_sync'
-    autoload :Clonner, 'repositories/clonner'
+    autoload :Cloner, 'repositories/cloner'
   end
 
   module Configurations
