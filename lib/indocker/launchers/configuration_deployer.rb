@@ -104,7 +104,11 @@ class Indocker::Launchers::ConfigurationDeployer
 
     Thread
       .list
-      .each { |t| t.join if t != Thread.current }
+      .each { |t|
+        if t != Thread.current
+          t.join if !t.stop?
+        end
+      }
   ensure
     build_server_pool.close_sessions if build_server_pool
     deployer.close_sessions if deployer
