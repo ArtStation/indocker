@@ -1,3 +1,3 @@
 module Indocker
-  VERSION = "0.1.17"
+  VERSION = "0.3.0"
 end
