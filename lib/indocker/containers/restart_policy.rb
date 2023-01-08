@@ -10,7 +10,7 @@ class Indocker::Containers::RestartPolicy
 
   def restart?(container, timestamp)
     file = timestamp_file(container)
-    return true if !File.exists?(file)
+    return true if !File.exist?(file)
 
     last_timestamp = File.read(file).strip
     timestamp != last_timestamp

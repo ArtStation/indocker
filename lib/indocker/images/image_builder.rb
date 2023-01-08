@@ -6,7 +6,7 @@ class Indocker::Images::ImageBuilder
     @image = Indocker::Images::Image.new(name)
     dockerfile = File.join(dir, 'Dockerfile')
 
-    if File.exists?(dockerfile)
+    if File.exist?(dockerfile)
       @image.set_dockerfile(dockerfile)
     end
 
@@ -35,7 +35,7 @@ class Indocker::Images::ImageBuilder
   end
 
   def dockerfile(path)
-    if !File.exists?(path)
+    if !File.exist?(path)
       raise ArgumentError.new("Dockerfile was not found in #{path}")
     end
 

@@ -24,7 +24,7 @@ class Indocker::DockerRunArgs
 
           path = Indocker::EnvFileHelper.path(env_file)
 
-          if !File.exists?(path)
+          if !File.exist?(path)
             raise ArgumentError.new("env file not found: #{path}")
           end
 
@@ -61,7 +61,7 @@ class Indocker::DockerRunArgs
       end
 
       sysctl = container.get_start_option(:sysctl)
-      
+
       if sysctl
         Array(sysctl).each do |val|
           args.push("--sysctl #{val}")
