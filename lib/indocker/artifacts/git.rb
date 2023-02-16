@@ -1,11 +1,12 @@
 class Indocker::Artifacts::Git < Indocker::Artifacts::Base
-  attr_reader :name, :remote_name, :remote_url, :branch, :files
+  attr_reader :name, :remote_name, :remote_url, :branch, :files, :ssh_key
 
-  def initialize(name:, remote_name:, remote_url:, branch:, files: [], source_path: nil, target_path: nil)
+  def initialize(name:, remote_name:, remote_url:, branch:, files: [], source_path: nil, target_path: nil, ssh_key: nil)
     @name        = name
     @remote_name = remote_name
     @remote_url  = remote_url
     @branch      = branch
+    @ssh_key     = ssh_key
 
     @files = build_all_files(
       files:       files,
@@ -19,6 +20,7 @@ class Indocker::Artifacts::Git < Indocker::Artifacts::Base
       remote_name: remote_name,
       remote_url:  remote_url,
       branch:      branch,
+      ssh_key:     ssh_key,
       clone_path:  "/tmp/#{Indocker.configuration.name}/artifacts/git/#{project_name(remote_url)}/#{branch}"
     )
   end
