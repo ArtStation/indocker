@@ -43,6 +43,10 @@ class Indocker::Images::ImageBuilder
     self
   end
 
+  def compile(flag_or_file_paths)
+    @image.set_compile(flag_or_file_paths)
+  end
+
   def depends_on(*image_list)
     if !image_list.is_a?(Array)
       image_list = [image_list]

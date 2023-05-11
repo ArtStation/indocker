@@ -40,7 +40,7 @@ class Indocker::Images::ImageCompiler
       templates_compiler = Indocker::Images::TemplatesCompiler.new
 
       templates_compiler.compile(
-        templates_dir: image.build_context,
+        image: image,
         compile_dir: compile_dir,
         context: build_context
       )
@@ -50,7 +50,7 @@ class Indocker::Images::ImageCompiler
 
     target_dockerfile = File.join(compile_dir, 'Dockerfile')
     FileUtils.cp(image.dockerfile, target_dockerfile)
-    compiler.compile(target_dockerfile, build_context)
+    compiler.compile(target_dockerfile, build_context, image)
 
     File
       .join(compile_dir, '.dockerignore')

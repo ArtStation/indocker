@@ -1,9 +1,8 @@
 class Indocker::Images::Image
-  attr_reader :name
-  attr_reader :dependent_images
-  attr_reader :build_args
+  attr_reader :name, :compile, :compile_rpaths, :dependent_images, :build_args
 
   def initialize(name)
+    @compile = false
     @name = name
     @dependent_images = []
     @build_args = {}
@@ -34,6 +33,30 @@ class Indocker::Images::Image
   end
 
   def set_dockerfile(path)
+    @dockerfile = path
+  end
+
+  def compile?(path)
+    return false if !@compile
+    return true if @compile_rpaths.empty?
+    return true if @compile_rpaths.any? { |rpath| path.include?(rpath) }
+    return false
+  end
+
+  def set_compile(flag_or_rpaths)
+    @compile_rpaths = []
+
+    if flag_or_rpaths == false
+      @compile = false
+      return
+    end
+
+    @compile = true
+
+    if flag_or_rpaths.is_a?(Array)
+      @compile_rpaths = flag_or_rpaths
+    end
+
     @dockerfile = path
   end
 

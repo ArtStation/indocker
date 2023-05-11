@@ -2,14 +2,15 @@ require 'erb'
 require 'fileutils'
 
 class Indocker::Images::TemplatesCompiler
-  def compile(templates_dir:, compile_dir:, context:)
+  def compile(image:, compile_dir:, context:)
+    templates_dir = image.build_context
     prepare_dirs!(templates_dir, compile_dir)
 
     compiler = Indocker::Images::TemplateCompiler.new
 
     Dir[File.join(compile_dir, '**/**')].each do |file|
       next if !File.file?(file)
-      compiler.compile(file, context)
+      compiler.compile(file, context, image)
     end
   end
 

@@ -1,7 +1,12 @@
 require 'erb'
 
 class Indocker::Images::TemplateCompiler
-  def compile(path, context)
+  def compile(path, context, image)
+    if !image.compile?(file)
+      Indocker.logger.debug("skipping ERB compilation for #{path}".grey)
+      return
+    end
+
     Indocker.logger.debug("compiling template file #{path}".grey)
     template = File.read(path)
     content = ERB.new(template).result(context.helper.get_binding)
