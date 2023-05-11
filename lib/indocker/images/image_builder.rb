@@ -45,6 +45,7 @@ class Indocker::Images::ImageBuilder
 
   def compile(flag_or_file_paths)
     @image.set_compile(flag_or_file_paths)
+    self
   end
 
   def depends_on(*image_list)
