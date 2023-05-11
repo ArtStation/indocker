@@ -60,7 +60,7 @@ class Indocker::Images::Image
       @compile_rpaths = flag_or_rpaths
     end
 
-    @dockerfile = path
+    nil
   end
 
   def dockerfile
