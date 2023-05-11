@@ -2,7 +2,7 @@ require 'erb'
 
 class Indocker::Images::TemplateCompiler
   def compile(path, context, image)
-    if !image.compile?(file)
+    if !image.compile?(path)
       Indocker.logger.debug("skipping ERB compilation for #{path}".grey)
       return
     end
