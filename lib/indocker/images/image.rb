@@ -1,4 +1,6 @@
 class Indocker::Images::Image
+  DOCKERFILE = "Dockerfile"
+
   attr_reader :name, :compile, :compile_rpaths, :dependent_images, :build_args
 
   def initialize(name)
@@ -37,6 +39,7 @@ class Indocker::Images::Image
   end
 
   def compile?(path)
+    return true if path.include?(DOCKERFILE)
     return false if !@compile
     return true if @compile_rpaths.empty?
     return true if @compile_rpaths.any? { |rpath| path.include?(rpath) }

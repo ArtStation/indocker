@@ -8,8 +8,10 @@ class Indocker::Images::TemplateCompiler
     end
 
     Indocker.logger.debug("compiling template file #{path}".grey)
+
     template = File.read(path)
     content = ERB.new(template).result(context.helper.get_binding)
+
     File.write(path, content)
   rescue Errno::EACCES => e
     # do nothing for read only files
