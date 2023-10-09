@@ -345,7 +345,7 @@ module Indocker
     def deploy(containers: [], skip_tags: [], tags: [], skip_dependent: false,
       skip_containers: [], servers: [], skip_build: false, skip_deploy: false,
       force_restart: false, skip_force_restart: [], auto_confirm: false,
-      require_confirmation: false)
+      require_confirmation: false, compile_args: {}, deploy_args: {})
 
       deployment_policy = Indocker::DeploymentPolicy.new(
         deploy_containers:    containers,
@@ -361,6 +361,16 @@ module Indocker
         auto_confirm:         auto_confirm,
         require_confirmation: require_confirmation,
       )
+
+      if compile_args
+        configuration.set_global_build_args(
+          Indocker::HashMerger.deep_merge(configuration.global_build_args, compile_args)
+        )
+      end
+
+      if deploy_args
+        configuration.set_deploy_args(deploy_args)
+      end
 
       Indocker::Launchers::ConfigurationDeployer
         .new(logger: Indocker.logger, global_logger: Indocker.global_logger)
