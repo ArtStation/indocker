@@ -363,9 +363,7 @@ module Indocker
       )
 
       if compile_args
-        configuration.set_global_build_args(
-          Indocker::HashMerger.deep_merge(configuration.global_build_args, compile_args)
-        )
+        configuration.set_compile_args(compile_args)
       end
 
       if deploy_args
@@ -400,7 +398,13 @@ module Indocker
         )
     end
 
-    def compile(images:, skip_dependent:)
+    def compile(images:, skip_dependent:, compile_args: {})
+      if compile_args
+        configuration.set_global_build_args(
+          Indocker::HashMerger.deep_merge(compile_args, configuration.global_build_args)
+        )
+      end
+
       Indocker::Launchers::ImagesCompiler
         .new(Indocker.logger)
         .compile(
@@ -410,7 +414,11 @@ module Indocker
         )
     end
 
-    def run(container_name, force_restart)
+    def run(container_name, force_restart, deploy_args: {})
+      if deploy_args
+        configuration.set_deploy_args(deploy_args)
+      end
+
       Indocker::Launchers::ContainerRunner
         .new(Indocker.logger)
         .run(

@@ -5,6 +5,7 @@ class Indocker::Configurations::Configuration
   attr_reader :build_servers
   attr_reader :global_build_args
   attr_reader :deploy_args
+  attr_reader :compile_args
   attr_reader :images
   attr_reader :containers
   attr_reader :volumes
@@ -91,6 +92,10 @@ class Indocker::Configurations::Configuration
 
   def set_deploy_args(hash)
     @deploy_args = hash
+  end
+
+  def set_compile_args(hash)
+    @compile_args = hash
   end
 
   def add_image(image)

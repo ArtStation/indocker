@@ -4,8 +4,10 @@ class Indocker::ServerPools::DeployServerConnection < Indocker::ServerPools::Ser
     debug_options   = @logger.debug? ? "-d" : ""
     force_restart_options = force_restart ? "-f" : ""
 
+    deploy_args = @configuration.deploy_args ? @configuration.deploy_args.map { |k, v| "--deploy-arg=\"#{k}=#{v}\"" }.join(" ") : ""
+
     result = exec!(
-      "cd #{Indocker::IndockerHelper.indocker_dir} && ./bin/remote/run -C #{configuration_name} -c #{container_name} #{debug_options} #{command_output} #{force_restart_options}"
+      "cd #{Indocker::IndockerHelper.indocker_dir} && ./bin/remote/run -C #{configuration_name} -c #{container_name} #{deploy_args} #{debug_options} #{command_output} #{force_restart_options}"
     )
 
     Indocker::SshResultLogger
