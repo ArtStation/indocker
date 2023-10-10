@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    indocker (0.3.2)
+    indocker (0.3.6)
       net-ssh
 
 GEM
@@ -11,8 +11,8 @@ GEM
     diff-lcs (1.5.0)
     docile (1.4.0)
     method_source (1.0.0)
-    net-ssh (7.1.0)
-    pry (0.14.1)
+    net-ssh (7.2.0)
+    pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
     rake (12.3.3)
@@ -20,25 +20,25 @@ GEM
       rspec-core (~> 3.12.0)
       rspec-expectations (~> 3.12.0)
       rspec-mocks (~> 3.12.0)
-    rspec-core (3.12.0)
+    rspec-core (3.12.2)
       rspec-support (~> 3.12.0)
-    rspec-expectations (3.12.0)
+    rspec-expectations (3.12.3)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.12.0)
-    rspec-mocks (3.12.0)
+    rspec-mocks (3.12.6)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.12.0)
-    rspec-support (3.12.0)
+    rspec-support (3.12.1)
     simplecov (0.18.5)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
     simplecov-html (0.12.3)
 
 PLATFORMS
-  ruby
+  x86_64-linux
 
 DEPENDENCIES
-  bundler (~> 1.17)
+  bundler
   indocker!
   pry
   rake (~> 12.3.3)
@@ -46,4 +46,4 @@ DEPENDENCIES
   simplecov (~> 0.18.5)
 
 BUNDLED WITH
-   1.17.3
+   2.4.20
