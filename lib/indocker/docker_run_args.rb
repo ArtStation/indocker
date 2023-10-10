@@ -133,6 +133,18 @@ class Indocker::DockerRunArgs
         args.push("--log-opt max-file=#{max_file}")
       end
 
+      cap_add = container.get_start_option(:cap_add)
+
+      if cap_add
+        args.push("--cap-add=#{cap_add}")
+      end
+
+      cap_drop = container.get_start_option(:cap_drop)
+
+      if cap_drop
+        args.push("--cap-drop=#{cap_drop}")
+      end
+
       health = container.get_start_option(:health) || {}
 
       if !health.is_a?(Hash)
@@ -153,6 +165,12 @@ class Indocker::DockerRunArgs
 
       if health.has_key?(:timeout)
         args.push("--health-timeout #{health[:timeout]}")
+      end
+
+      if configuration.deploy_args
+        configuration.deploy_args.each do |k, v|
+          args.push("--#{k}=#{v}")
+        end
       end
 
       container.volumes.each do |volume|

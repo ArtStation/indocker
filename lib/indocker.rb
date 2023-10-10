@@ -345,7 +345,7 @@ module Indocker
     def deploy(containers: [], skip_tags: [], tags: [], skip_dependent: false,
       skip_containers: [], servers: [], skip_build: false, skip_deploy: false,
       force_restart: false, skip_force_restart: [], auto_confirm: false,
-      require_confirmation: false)
+      require_confirmation: false, compile_args: {}, deploy_args: {})
 
       deployment_policy = Indocker::DeploymentPolicy.new(
         deploy_containers:    containers,
@@ -361,6 +361,14 @@ module Indocker
         auto_confirm:         auto_confirm,
         require_confirmation: require_confirmation,
       )
+
+      if compile_args
+        configuration.set_compile_args(compile_args)
+      end
+
+      if deploy_args
+        configuration.set_deploy_args(deploy_args)
+      end
 
       Indocker::Launchers::ConfigurationDeployer
         .new(logger: Indocker.logger, global_logger: Indocker.global_logger)
@@ -390,7 +398,13 @@ module Indocker
         )
     end
 
-    def compile(images:, skip_dependent:)
+    def compile(images:, skip_dependent:, compile_args: {})
+      if compile_args
+        configuration.set_global_build_args(
+          Indocker::HashMerger.deep_merge(compile_args, configuration.global_build_args)
+        )
+      end
+
       Indocker::Launchers::ImagesCompiler
         .new(Indocker.logger)
         .compile(
@@ -400,7 +414,11 @@ module Indocker
         )
     end
 
-    def run(container_name, force_restart)
+    def run(container_name, force_restart, deploy_args: {})
+      if deploy_args
+        configuration.set_deploy_args(deploy_args)
+      end
+
       Indocker::Launchers::ContainerRunner
         .new(Indocker.logger)
         .run(
