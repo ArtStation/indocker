@@ -18,7 +18,8 @@ class Indocker::Docker
       Indocker::Shell.command("docker pull #{url}", Indocker.logger)
     end
 
-    def stop(container_name, time = 10, skip_errors: false)
+    def stop(container_name, time: nil, skip_errors: false)
+      time ||= 10 # default timeout for Linux
       Indocker::Shell.command("docker stop --time=#{time} #{container_name}", Indocker.logger, skip_errors: skip_errors)
       rm(container_name, skip_errors: skip_errors)
     end

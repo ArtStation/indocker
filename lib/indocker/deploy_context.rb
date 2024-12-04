@@ -69,8 +69,10 @@ class Indocker::DeployContext
           container.before_start_proc.call(container, number)
         end
 
+        stop_timeout = container.get_start_option(:stop_timeout)
+
         if container_id
-          Indocker::Docker.stop(hostname, skip_errors: true)
+          Indocker::Docker.stop(hostname, time: stop_timeout, skip_errors: true)
         else
           Indocker::Docker.rm(hostname, skip_errors: true)
         end
