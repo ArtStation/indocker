@@ -323,7 +323,10 @@ class Indocker::Launchers::ConfigurationDeployer
           .map { |dependency| deploy_threads[dependency] }
           .compact
 
-        deploy_threads[container] = Thread.new do
+        # Pass container/dependency_threads as thread arguments so each thread
+        # captures its own value — the shared loop variables get reassigned on
+        # the next iteration (eventually to :done) before these threads run.
+        deploy_threads[container] = Thread.new(container, dependency_threads) do |container, dependency_threads|
           dependency_threads.each(&:join)
           deploy_container(deployer, container, force_restart, skip_force_restart)
         end
