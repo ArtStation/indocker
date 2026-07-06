@@ -88,27 +88,16 @@ class Indocker::Launchers::ConfigurationDeployer
 
     update_crontab_redeploy_rules(configuration, build_servers.first)
 
-    containers.uniq.each do |container|
-      recursively_deploy_container(
-        configuration,
-        deployer,
-        build_server_pool,
-        container,
-        containers,
-        deployment_policy.skip_build,
-        deployment_policy.skip_deploy,
-        deployment_policy.force_restart,
-        deployment_policy.skip_force_restart
-      )
-    end
-
-    Thread
-      .list
-      .each { |t|
-        if t != Thread.current
-          t.join if !t.stop?
-        end
-      }
+    pipeline_build_and_deploy(
+      configuration,
+      deployer,
+      build_server_pool,
+      containers.uniq,
+      deployment_policy.skip_build,
+      deployment_policy.skip_deploy,
+      deployment_policy.force_restart,
+      deployment_policy.skip_force_restart
+    )
   ensure
     build_server_pool.close_sessions if build_server_pool
     deployer.close_sessions if deployer
@@ -306,40 +295,86 @@ class Indocker::Launchers::ConfigurationDeployer
     @compiled_images[image] = true
   end
 
-  def recursively_deploy_container(configuration, deployer, build_server_pool, container,
-    containers, skip_build, skip_deploy, force_restart, skip_force_restart)
+  # Producer/consumer pipeline that decouples image builds from deployments.
+  #
+  # The producer builds images one after another on the build server (serially,
+  # in dependency order) and, as soon as an image is built & pushed, hands its
+  # container to the deploy stage — so the next image is already building while
+  # the previous container deploys.
+  #
+  # The consumer starts a deploy per built container. Each deploy first waits for
+  # all of the container's dependencies to finish deploying (depends_on ordering),
+  # then deploys. Independent containers deploy concurrently; per-server exclusion
+  # (one container at a time per host) is enforced inside ContainerDeployer.
+  def pipeline_build_and_deploy(configuration, deployer, build_server_pool, containers,
+    skip_build, skip_deploy, force_restart, skip_force_restart)
 
-    container.dependent_containers.each do |container|
-      recursively_deploy_container(
-        configuration,
-        deployer,
-        build_server_pool,
-        container,
-        containers,
-        skip_build,
-        skip_deploy,
-        force_restart,
-        skip_force_restart
-      )
+    ordered_containers = build_deploy_order(containers)
+
+    deploy_queue   = Queue.new
+    deploy_threads = {}
+
+    consumer = Thread.new do
+      while (container = deploy_queue.pop) != :done
+        # Dependencies are always built (and therefore queued) before their
+        # dependents, so their deploy threads already exist here.
+        dependency_threads = container
+          .dependent_containers
+          .map { |dependency| deploy_threads[dependency] }
+          .compact
+
+        deploy_threads[container] = Thread.new do
+          dependency_threads.each(&:join)
+          deploy_container(deployer, container, force_restart, skip_force_restart)
+        end
+      end
     end
 
-    return if !containers.include?(container)
+    ordered_containers.each do |container|
+      @progress.start_building_container(container)
 
-    @progress.start_building_container(container)
+      if !skip_build
+        build_server = build_server_pool.get
 
-    if !skip_build
-      build_server = build_server_pool.get
+        build_server.set_busy(true)
+        compile_image(configuration, container.image, build_server)
+        build_server.set_busy(false)
+      end
 
-      build_server.set_busy(true)
-      compile_image(configuration, container.image, build_server)
-      build_server.set_busy(false)
+      @progress.finish_building_container(container)
+
+      deploy_queue.push(container) if !skip_deploy
     end
 
-    @progress.finish_building_container(container)
+    deploy_queue.push(:done)
+    consumer.join
+    deploy_threads.values.each(&:join)
+  end
 
-    if !skip_deploy
-      deploy_container(deployer, container, force_restart, skip_force_restart)
+  # Returns the containers to deploy in dependency order (each container's
+  # dependencies come before it), deduplicated. Containers that are only pulled
+  # in as dependencies but are not part of the deploy set are used for ordering
+  # but not included.
+  def build_deploy_order(containers)
+    ordered = []
+    visited = {}
+
+    containers.each do |container|
+      collect_deploy_order(container, containers, ordered, visited)
     end
+
+    ordered
+  end
+
+  def collect_deploy_order(container, containers, ordered, visited)
+    return if visited[container]
+    visited[container] = true
+
+    container.dependent_containers.each do |dependency|
+      collect_deploy_order(dependency, containers, ordered, visited)
+    end
+
+    ordered << container if containers.include?(container)
   end
 
   def deploy_container(deployer, container, force_restart, skip_force_restart)
