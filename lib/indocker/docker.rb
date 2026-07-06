@@ -20,7 +20,7 @@ class Indocker::Docker
 
     def stop(container_name, time: nil, skip_errors: false)
       time ||= 10 # default timeout for Linux
-      Indocker::Shell.command("docker stop --time=#{time} #{container_name}", Indocker.logger, skip_errors: skip_errors)
+      Indocker::Shell.command("docker stop -t #{time} #{container_name}", Indocker.logger, skip_errors: skip_errors)
       rm(container_name, skip_errors: skip_errors)
     end
 
